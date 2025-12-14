@@ -3,13 +3,11 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: streamcam
+    container_name: streamcam-app
     ports:
       - "${PORT}:3001"
     environment:
       - NODE_ENV=production
-    # Si necesitas montar archivos locales, descomenta la siguiente línea:
-    # volumes:
-    #   - .:/app
+
     restart: unless-stopped
     command: npm start
