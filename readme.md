@@ -92,19 +92,3 @@ Una vez iniciado el servidor:
 ✅ Página de prueba incluida  
 ✅ Configuración mediante variables de entorno  
 ✅ Modo desarrollo con auto-recarga
-
-## Ejemplo de Salida
-
-```
-Servidor proxy escuchando en http://localhost:3001/
-Prueba el stream en http://localhost:3001/stream
-Conectando a ESP32-CAM en: http://192.168.1.68:81/stream
-Conectado a ESP32-CAM.
-Status: 200
-Content-Type: multipart/x-mixed-replace; boundary=frame
-Cliente conectado a /stream. Total clientes: 1
-```
-
-## Licencia
-
-MIT © PedroPab
