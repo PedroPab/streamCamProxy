@@ -1,10 +1,13 @@
 // server.js
 const http = require('http');
 
-const ESP32_HOST = '192.168.1.68';  // 👈 tu IP
-const ESP32_PORT = 81;              // normalmente 81 para /stream en el ejemplo de cámara
-const ESP32_PATH = '/stream';       // ruta típica del stream
+const ESP32_HOST = process.env.ESP32_HOST || '192.168.1.6';
+const ESP32_PORT = process.env.ESP32_PORT || 81;
+const ESP32_PATH = process.env.ESP32_PATH || '/stream';
+const PORT = process.env.PORT || 3001;
+
 const ESP32_URL = `http://${ESP32_HOST}:${ESP32_PORT}${ESP32_PATH}`;
+console.log('URL de la ESP32-CAM:', ESP32_URL);
 
 const clients = new Set();          // respuestas (res) de los navegadores conectados a /stream
 
@@ -131,7 +134,7 @@ const server = http.createServer((req, res) => {
     }
 });
 
-const PORT = 3001; // 👈 tu puerto
+
 server.listen(PORT, () => {
     console.log(`Servidor proxy escuchando en http://localhost:${PORT}/`);
     console.log(`Prueba el stream en http://localhost:${PORT}/stream`);
