@@ -5,6 +5,9 @@ import streamRouter from './src/router/stream.js';
 
 const app = express();
 
+// Middleware para servir archivos estáticos desde la carpeta public
+app.use(express.static('src/public'));
+
 app.use((req, res, next) => {
     console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
     next();
