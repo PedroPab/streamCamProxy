@@ -1,11 +1,28 @@
-import { createServer } from 'http';
-import { default as routers } from './src/router/index.js';
+import express from 'express';
 import { PORT_external } from './src/controller/initData.js';
+import homeRouter from './src/router/home.js';
+import streamRouter from './src/router/stream.js';
 
-// Servidor HTTP que exporta /stream y una página de prueba
-const server = createServer(routers)
+const app = express();
 
-server.listen(PORT_external, () => {
-    console.log(`Servidor proxy escuchando en http://localhost:${PORT_external}/`);
-    console.log(`Prueba el stream en http://localhost:${PORT_external}/stream`);
+app.use((req, res, next) => {
+    console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
+    next();
+});
+
+app.get('/', homeRouter);
+
+app.get('/stream', streamRouter);
+
+app.use((req, res) => {
+    res.status(404).send('Not found');
+});
+
+app.listen(PORT_external, () => {
+    console.log('='.repeat(60));
+    console.log(`🚀 Servidor proxy ESP32-CAM iniciado`);
+    console.log('='.repeat(60));
+    console.log(`📡 Servidor escuchando en: http://localhost:${PORT_external}/`);
+    console.log(`📹 Stream disponible en:   http://localhost:${PORT_external}/stream`);
+    console.log('='.repeat(60));
 });

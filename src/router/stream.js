@@ -2,7 +2,6 @@ import { espReq, espRes, espHeaders } from '../controller/initData.js';
 import clients from '../controller/clients.js';
 import connectToCamera from '../controller/connectToCamera.js';
 
-// Constantes
 const DEFAULT_CONTENT_TYPE = 'multipart/x-mixed-replace; boundary=frame';
 
 const RESPONSE_HEADERS = {
@@ -12,15 +11,12 @@ const RESPONSE_HEADERS = {
     Connection: 'close',
 };
 
-
-// Router Principal
-
-
 /**
  * Maneja las solicitudes HTTP al endpoint /stream
  * Conecta navegadores al stream MJPEG de la ESP32-CAM
- * @param {http.IncomingMessage} req - Solicitud HTTP del cliente
- * @param {http.ServerResponse} res - Respuesta HTTP al cliente
+ * Compatible con Express middleware
+ * @param {import('express').Request} req - Request de Express
+ * @param {import('express').Response} res - Response de Express
  */
 const streamRouter = (req, res) => {
     initializeClientResponse(res);
@@ -29,13 +25,9 @@ const streamRouter = (req, res) => {
     registerClientDisconnectHandler(req, res);
 };
 
-
-// Inicialización de Cliente
-
-
 /**
  * Configura los headers de respuesta para streaming MJPEG
- * @param {http.ServerResponse} res - Respuesta HTTP
+ * @param {import('express').Response} res - Response de Express
  */
 function initializeClientResponse(res) {
     const contentType = getContentType();
@@ -58,7 +50,7 @@ function getContentType() {
 
 /**
  * Registra un nuevo cliente en la colección
- * @param {http.ServerResponse} res - Respuesta HTTP del cliente
+ * @param {import('express').Response} res - Response de Express
  */
 function registerClient(res) {
     clients.add(res);
@@ -75,11 +67,10 @@ function ensureCameraConnection() {
 
 // Manejo de Desconexión de Clientes
 
-
 /**
  * Registra el handler para cuando un cliente se desconecta
- * @param {http.IncomingMessage} req - Solicitud HTTP del cliente
- * @param {http.ServerResponse} res - Respuesta HTTP del cliente
+ * @param {import('express').Request} req - Request de Express
+ * @param {import('express').Response} res - Response de Express
  */
 function registerClientDisconnectHandler(req, res) {
     req.on('close', () => {
@@ -89,7 +80,7 @@ function registerClientDisconnectHandler(req, res) {
 
 /**
  * Maneja la desconexión de un cliente
- * @param {http.ServerResponse} res - Respuesta HTTP del cliente desconectado
+ * @param {import('express').Response} res - Response del cliente desconectado
  */
 function handleClientDisconnect(res) {
     unregisterClient(res);
@@ -102,7 +93,7 @@ function handleClientDisconnect(res) {
 
 /**
  * Elimina un cliente de la colección
- * @param {http.ServerResponse} res - Respuesta HTTP del cliente
+ * @param {import('express').Response} res - Response de Express
  */
 function unregisterClient(res) {
     clients.delete(res);
@@ -151,7 +142,6 @@ function destroyCameraStreams() {
 
 // Utilidades de Logging
 
-
 /**
  * Registra en consola cuando un cliente se conecta
  */
@@ -173,9 +163,5 @@ function logClientDisconnected() {
 function logConnectionCloseError(error) {
     console.error('Error cerrando conexiones:', error.message);
 }
-
-
-// Exportaciones
-
 
 export default streamRouter;

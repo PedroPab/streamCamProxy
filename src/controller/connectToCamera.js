@@ -177,9 +177,6 @@ function isClientWritable(clientRes) {
 }
 
 
-// Utilidades de Logging
-
-
 /**
  * Registra información sobre la conexión exitosa
  * @param {http.IncomingMessage} response - Respuesta HTTP
@@ -190,9 +187,5 @@ function logConnectionSuccess(response) {
     console.log('Status:', response.statusCode);
     console.log('Content-Type:', headers['content-type']);
 }
-
-
-// Exportaciones
-
 
 export default connectToCamera;
