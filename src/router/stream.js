@@ -1,46 +1,181 @@
 import { espReq, espRes, espHeaders } from '../controller/initData.js';
 import clients from '../controller/clients.js';
 import connectToCamera from '../controller/connectToCamera.js';
+
+// Constantes
+const DEFAULT_CONTENT_TYPE = 'multipart/x-mixed-replace; boundary=frame';
+
+const RESPONSE_HEADERS = {
+    'Cache-Control': 'no-cache, no-store, must-revalidate',
+    Pragma: 'no-cache',
+    Expires: '0',
+    Connection: 'close',
+};
+
+
+// Router Principal
+
+
+/**
+ * Maneja las solicitudes HTTP al endpoint /stream
+ * Conecta navegadores al stream MJPEG de la ESP32-CAM
+ * @param {http.IncomingMessage} req - Solicitud HTTP del cliente
+ * @param {http.ServerResponse} res - Respuesta HTTP al cliente
+ */
 const streamRouter = (req, res) => {
+    initializeClientResponse(res);
+    registerClient(res);
+    ensureCameraConnection();
+    registerClientDisconnectHandler(req, res);
+};
 
 
-    // Usamos el Content-Type original de la cámara si ya lo conocemos
-    const contentType =
-        (espHeaders && espHeaders['content-type']) ||
-        'multipart/x-mixed-replace; boundary=frame';
+// Inicialización de Cliente
+
+
+/**
+ * Configura los headers de respuesta para streaming MJPEG
+ * @param {http.ServerResponse} res - Respuesta HTTP
+ */
+function initializeClientResponse(res) {
+    const contentType = getContentType();
 
     res.writeHead(200, {
         'Content-Type': contentType,
-        'Cache-Control': 'no-cache, no-store, must-revalidate',
-        Pragma: 'no-cache',
-        Expires: '0',
-        Connection: 'close',
-    });
-
-    clients.add(res);
-    console.log('Cliente conectado a /stream. Total clientes:', clients.size);
-
-    // Aseguramos que haya conexión a la cámara
-    connectToCamera();
-
-    // Cuando el navegador se cierra o recarga, quitamos el cliente
-    req.on('close', () => {
-        clients.delete(res);
-        console.log('Cliente desconectado. Total clientes:', clients.size);
-
-        // Si ya no quedan clientes, podemos cerrar la conexión con la cámara
-        if (clients.size === 0 && espRes) {
-            console.log('No hay clientes, cerrando stream de la cámara.');
-            try {
-                espReq && espReq.destroy();
-                espRes && espRes.destroy();
-            } catch (e) {
-                console.error('Error cerrando conexiones:', e.message);
-            }
-            espReq = null;
-            espRes = null;
-        }
+        ...RESPONSE_HEADERS,
     });
 }
 
-export default streamRouter
+/**
+ * Obtiene el Content-Type apropiado para el stream
+ * Usa el Content-Type de la cámara si está disponible, o un valor por defecto
+ * @returns {string}
+ */
+function getContentType() {
+    const headers = espHeaders.get();
+    return (headers && headers['content-type']) || DEFAULT_CONTENT_TYPE;
+}
+
+/**
+ * Registra un nuevo cliente en la colección
+ * @param {http.ServerResponse} res - Respuesta HTTP del cliente
+ */
+function registerClient(res) {
+    clients.add(res);
+    logClientConnected();
+}
+
+/**
+ * Asegura que exista una conexión activa con la cámara
+ */
+function ensureCameraConnection() {
+    connectToCamera();
+}
+
+
+// Manejo de Desconexión de Clientes
+
+
+/**
+ * Registra el handler para cuando un cliente se desconecta
+ * @param {http.IncomingMessage} req - Solicitud HTTP del cliente
+ * @param {http.ServerResponse} res - Respuesta HTTP del cliente
+ */
+function registerClientDisconnectHandler(req, res) {
+    req.on('close', () => {
+        handleClientDisconnect(res);
+    });
+}
+
+/**
+ * Maneja la desconexión de un cliente
+ * @param {http.ServerResponse} res - Respuesta HTTP del cliente desconectado
+ */
+function handleClientDisconnect(res) {
+    unregisterClient(res);
+    logClientDisconnected();
+
+    if (shouldCloseCameraConnection()) {
+        closeCameraConnection();
+    }
+}
+
+/**
+ * Elimina un cliente de la colección
+ * @param {http.ServerResponse} res - Respuesta HTTP del cliente
+ */
+function unregisterClient(res) {
+    clients.delete(res);
+}
+
+/**
+ * Determina si se debe cerrar la conexión con la cámara
+ * Solo cierra si no quedan clientes conectados
+ * @returns {boolean}
+ */
+function shouldCloseCameraConnection() {
+    return clients.size === 0 && espRes.get() !== null;
+}
+
+/**
+ * Cierra la conexión activa con la ESP32-CAM
+ */
+function closeCameraConnection() {
+    console.log('No hay clientes, cerrando stream de la cámara.');
+
+    try {
+        destroyCameraStreams();
+    } catch (error) {
+        logConnectionCloseError(error);
+    }
+}
+
+/**
+ * Destruye los streams de conexión con la cámara
+ */
+function destroyCameraStreams() {
+    const request = espReq.get();
+    const response = espRes.get();
+
+    if (request) {
+        request.destroy();
+        espReq.set(null);
+    }
+
+    if (response) {
+        response.destroy();
+        espRes.set(null);
+    }
+}
+
+
+// Utilidades de Logging
+
+
+/**
+ * Registra en consola cuando un cliente se conecta
+ */
+function logClientConnected() {
+    console.log('Cliente conectado a /stream. Total clientes:', clients.size);
+}
+
+/**
+ * Registra en consola cuando un cliente se desconecta
+ */
+function logClientDisconnected() {
+    console.log('Cliente desconectado. Total clientes:', clients.size);
+}
+
+/**
+ * Registra errores al cerrar las conexiones
+ * @param {Error} error - Error capturado
+ */
+function logConnectionCloseError(error) {
+    console.error('Error cerrando conexiones:', error.message);
+}
+
+
+// Exportaciones
+
+
+export default streamRouter;
