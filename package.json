@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "Servidor proxy Node.js para ESP32-CAM que permite múltiples conexiones simultáneas al stream MJPEG sin saturar la cámara",
   "main": "server.js",
+  "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node --env-file=.env server.js",
