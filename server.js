@@ -41,4 +41,10 @@ initStorage().then(() => {
         console.log(`📹 Stream disponible en:   http://localhost:${PORT_external}/stream`);
         console.log('='.repeat(60));
     });
+}).catch((err) => {
+    console.error('Error al inicializar el almacenamiento:', err);
+}).finally(() => {
+    console.log('='.repeat(60));
+    console.log(`📁 Almacenamiento inicializado`);
+    console.log('='.repeat(60));
 });

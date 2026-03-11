@@ -227,7 +227,11 @@ export class MediaViewer {
         this.elements.btnPlayPause.textContent = '⏸ PAUSE';
         this.elements.btnPlayPause.classList.add('playing');
 
-        const frameRate = 10 * this.videoSpeed;
+        const durationSecs = this.videoDuration / 1000;
+        const baseFrameRate = durationSecs > 0
+            ? this.videoFrames.length / durationSecs
+            : 10;
+        const frameRate = baseFrameRate * this.videoSpeed;
         const interval = 1000 / frameRate;
 
         this.videoInterval = setInterval(() => {

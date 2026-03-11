@@ -118,6 +118,7 @@ export class SurveillanceNode {
 
         if (data.connected !== prevConnected) {
             if (data.connected) {
+                this.hideOverlay();
                 this.addLog('Camera connection restored', 'success');
             } else {
                 this.addLog('Camera connection lost', 'error');
