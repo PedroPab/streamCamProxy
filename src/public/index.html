@@ -156,6 +156,71 @@
     <!-- Flash overlay para captura -->
     <div class="flash-overlay" id="flash-overlay"></div>
 
+    <!-- Modal visualizador multimedia -->
+    <div class="media-viewer" id="media-viewer">
+        <div class="viewer-backdrop"></div>
+        <div class="viewer-container">
+            <div class="viewer-header">
+                <div class="viewer-title">
+                    <span class="panel-icon">[&gt;]</span>
+                    <span id="viewer-filename">FILE_NAME</span>
+                </div>
+                <div class="viewer-controls-header">
+                    <button id="btn-download" class="viewer-btn" title="Download">
+                        <span>[↓]</span> DOWNLOAD
+                    </button>
+                    <button id="btn-delete" class="viewer-btn danger" title="Delete">
+                        <span>[X]</span> DELETE
+                    </button>
+                    <button id="btn-close-viewer" class="viewer-btn close" title="Close">
+                        [ESC]
+                    </button>
+                </div>
+            </div>
+            <div class="viewer-content">
+                <button id="btn-prev" class="nav-btn prev" title="Previous">&lt;</button>
+                <div class="viewer-media">
+                    <img id="viewer-image" class="viewer-img" alt="Preview">
+                    <div id="viewer-video" class="viewer-video">
+                        <img id="viewer-video-frame" class="viewer-video-frame" alt="Video frame">
+                        <div class="video-controls">
+                            <button id="btn-play-pause" class="video-btn">▶ PLAY</button>
+                            <div class="video-progress">
+                                <div class="video-progress-bar" id="video-progress-bar"></div>
+                            </div>
+                            <span id="video-time" class="video-time">00:00 / 00:00</span>
+                            <button id="btn-video-speed" class="video-btn speed">1x</button>
+                        </div>
+                    </div>
+                    <div id="viewer-loading" class="viewer-loading">
+                        <span class="loading-text">LOADING...</span>
+                    </div>
+                </div>
+                <button id="btn-next" class="nav-btn next" title="Next">&gt;</button>
+            </div>
+            <div class="viewer-footer">
+                <span id="viewer-info" class="viewer-info">-- / --</span>
+                <span id="viewer-date" class="viewer-date">--</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de confirmacion -->
+    <div class="confirm-modal" id="confirm-modal">
+        <div class="confirm-box">
+            <div class="confirm-header">
+                <span class="panel-icon">[!]</span>
+                <span>CONFIRM_DELETE</span>
+            </div>
+            <p class="confirm-message">Are you sure you want to delete this file?</p>
+            <p class="confirm-filename" id="confirm-filename"></p>
+            <div class="confirm-buttons">
+                <button id="btn-confirm-cancel" class="cyber-btn">CANCEL</button>
+                <button id="btn-confirm-delete" class="cyber-btn danger">DELETE</button>
+            </div>
+        </div>
+    </div>
+
     <script src="script.js"></script>
 </body>
 </html>
