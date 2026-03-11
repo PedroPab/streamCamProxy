@@ -72,10 +72,52 @@
                 </div>
             </section>
 
+            <!-- Controles de captura -->
+            <section class="panel controls-panel">
+                <div class="panel-header">
+                    <span class="panel-icon">[!]</span>
+                    <span class="panel-title">CAPTURE_CONTROLS</span>
+                </div>
+                <div class="panel-content">
+                    <div class="control-buttons">
+                        <button id="btn-capture" class="cyber-btn capture">
+                            <span class="btn-icon">[+]</span> CAPTURE
+                        </button>
+                        <button id="btn-record" class="cyber-btn record">
+                            <span class="btn-icon">[R]</span> <span id="record-text">REC</span>
+                        </button>
+                    </div>
+                    <div class="recording-status" id="recording-status">
+                        <span class="rec-timer" id="rec-timer">00:00:00</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Estadisticas de media -->
+            <section class="panel media-stats-panel">
+                <div class="panel-header">
+                    <span class="panel-icon">[=]</span>
+                    <span class="panel-title">MEDIA_STATS</span>
+                </div>
+                <div class="panel-content">
+                    <div class="status-item">
+                        <span class="status-label">PHOTOS:</span>
+                        <span class="status-value" id="photo-count">0</span>
+                    </div>
+                    <div class="status-item">
+                        <span class="status-label">VIDEOS:</span>
+                        <span class="status-value" id="video-count">0</span>
+                    </div>
+                    <button id="btn-gallery" class="cyber-btn gallery">
+                        <span class="btn-icon">[#]</span> GALLERY
+                    </button>
+                </div>
+            </section>
+
             <!-- Log de actividad -->
             <section class="panel log-panel">
                 <div class="panel-header">
-                    <span class="panel-icon">[#]</span>
+                    <span class="panel-icon">[~]</span>
                     <span class="panel-title">ACTIVITY_LOG</span>
                 </div>
                 <div class="panel-content">
@@ -93,6 +135,26 @@
         <span class="footer-item">PORT: 3001</span>
         <span class="footer-item" id="uptime">UPTIME: 00:00:00</span>
     </footer>
+
+    <!-- Modal de galeria -->
+    <div class="gallery-modal" id="gallery-modal">
+        <div class="gallery-container">
+            <div class="gallery-header">
+                <span class="panel-title">MEDIA_GALLERY</span>
+                <button id="btn-close-gallery" class="cyber-btn close">[X]</button>
+            </div>
+            <div class="gallery-tabs">
+                <button class="tab-btn active" data-tab="photos">PHOTOS</button>
+                <button class="tab-btn" data-tab="videos">VIDEOS</button>
+            </div>
+            <div class="gallery-content" id="gallery-content">
+                <!-- Thumbnails insertados dinamicamente -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Flash overlay para captura -->
+    <div class="flash-overlay" id="flash-overlay"></div>
 
     <script src="script.js"></script>
 </body>

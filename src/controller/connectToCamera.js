@@ -9,6 +9,8 @@ import {
     errors
 } from './initData.js';
 import clients from './clients.js';
+import { frameParser } from './frameParser.js';
+import { videoRecorder } from './videoRecorder.js';
 
 // Constantes
 const ERROR_MESSAGES = {
@@ -69,6 +71,18 @@ function handleConnectionError(error) {
  * @param {Buffer} chunk - Fragmento de datos MJPEG
  */
 function handleDataChunk(chunk) {
+    // Parsear frames para captura
+    frameParser.push(chunk);
+
+    // Si está grabando, agregar frames al video
+    if (videoRecorder.isRecording()) {
+        const frame = frameParser.getLastFrame();
+        if (frame) {
+            videoRecorder.addFrame(frame);
+        }
+    }
+
+    // Broadcast a clientes
     broadcastToClients(chunk);
 }
 
