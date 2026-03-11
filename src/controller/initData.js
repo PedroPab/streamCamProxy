@@ -20,12 +20,22 @@ class flags {
     get() {
         return this.value;
     }
+    toJSON() {
+        return this.value;
+    }
 }
 
 const connecting = new flags(false);
 const espHeaders = new flags(null)
 const espReq = new flags(null)
 const espRes = new flags(null)
+const connected = new flags(false);
+const errorsObj = {
+    type: '',
+    message: '',
+    timestamp: null,
+};
+const errors = new flags(errorsObj);
 
 export {
     ESP32_HOST,
@@ -36,5 +46,7 @@ export {
     espReq,
     espRes,
     espHeaders,
-    connecting
+    connecting,
+    connected,
+    errors,
 }

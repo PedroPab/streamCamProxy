@@ -5,6 +5,8 @@ import {
     espRes,
     espHeaders,
     connecting,
+    connected,
+    errors
 } from './initData.js';
 import clients from './clients.js';
 
@@ -25,7 +27,11 @@ function connectToCamera() {
         console.log('Ya existe una conexión activa o en proceso.');
         return;
     }
-
+    errors.set({
+        type: '',
+        message: ' ',
+        timestamp: new Date(),
+    });
     initializeConnection();
 }
 
@@ -41,6 +47,7 @@ function handleSuccessfulConnection(response) {
     updateConnectionState(response);
     logConnectionSuccess(response);
     registerStreamEventHandlers(response);
+    connected.set(true);
 }
 
 /**
@@ -80,8 +87,14 @@ function handleStreamEnd() {
  */
 function handleStreamError(error) {
     console.error('Error en stream ESP32-CAM:', error.message);
+    errors.set({
+        type: 'stream',
+        message: error.message,
+        timestamp: new Date(),
+    });
     resetCameraState();
     disconnectAllClients(ERROR_MESSAGES.STREAM_ERROR);
+
 }
 
 

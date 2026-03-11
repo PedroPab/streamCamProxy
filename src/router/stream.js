@@ -21,7 +21,7 @@ const RESPONSE_HEADERS = {
 const streamRouter = (req, res) => {
     initializeClientResponse(res);
     registerClient(res);
-    ensureCameraConnection();
+    connectToCamera();
     registerClientDisconnectHandler(req, res);
 };
 
@@ -55,13 +55,6 @@ function getContentType() {
 function registerClient(res) {
     clients.add(res);
     logClientConnected();
-}
-
-/**
- * Asegura que exista una conexión activa con la cámara
- */
-function ensureCameraConnection() {
-    connectToCamera();
 }
 
 

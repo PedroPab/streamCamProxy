@@ -2,6 +2,7 @@ import express from 'express';
 import { PORT_external } from './src/controller/initData.js';
 import homeRouter from './src/router/home.js';
 import streamRouter from './src/router/stream.js';
+import statusRouter from './src/router/status/index.js';
 
 const app = express();
 
@@ -16,6 +17,8 @@ app.use((req, res, next) => {
 app.get('/', homeRouter);
 
 app.get('/stream', streamRouter);
+
+app.use('/status', statusRouter);
 
 app.use((req, res) => {
     res.status(404).send('Not found');
