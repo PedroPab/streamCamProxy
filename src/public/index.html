@@ -3,22 +3,96 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ESP32-CAM Proxy</title>
+    <title>ESP32-CAM // SURVEILLANCE NODE</title>
     <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
 </head>
 <body>
-    <div class="container">
-        <h1>🎥 ESP32-CAM Stream Proxy</h1>
-        <p>Stream MJPEG en tiempo real desde tu ESP32-CAM</p>
+    <!-- Efecto scanlines overlay -->
+    <div class="scanlines"></div>
 
-        <img id="stream-img" src="/stream" alt="ESP32-CAM Stream">
-
-        <div class="info">
-            <p><strong>Estado:</strong> <span id="status">Conectado</span></p>
-            <p><strong>Puerto:</strong> 3001</p>
-            <p><strong>Endpoint:</strong> /stream</p>
+    <!-- Header estilo terminal -->
+    <header class="terminal-header">
+        <div class="terminal-title">
+            <span class="prompt">[root@esp32cam]~#</span>
+            <span class="command">surveillance_feed --live</span>
+            <span class="cursor">_</span>
         </div>
-    </div>
+        <div class="system-time" id="system-time">00:00:00</div>
+    </header>
+
+    <!-- Contenedor principal tipo dashboard -->
+    <main class="dashboard">
+        <!-- Panel del stream (principal) -->
+        <section class="panel stream-panel">
+            <div class="panel-header">
+                <span class="panel-icon">[*]</span>
+                <span class="panel-title">LIVE_FEED</span>
+                <span class="rec-indicator" id="rec-indicator">
+                    <span class="rec-dot"></span> REC
+                </span>
+            </div>
+            <div class="stream-container">
+                <img id="stream-img" src="/stream" alt="ESP32-CAM Stream">
+                <div class="stream-overlay" id="stream-overlay">
+                    <span class="loading-text">INITIALIZING FEED...</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Panel lateral de estadisticas -->
+        <aside class="sidebar">
+            <!-- Estado de conexion -->
+            <section class="panel status-panel">
+                <div class="panel-header">
+                    <span class="panel-icon">[&gt;]</span>
+                    <span class="panel-title">SYS_STATUS</span>
+                </div>
+                <div class="panel-content">
+                    <div class="status-item">
+                        <span class="status-label">CONNECTION:</span>
+                        <span class="status-value">
+                            <span class="led" id="connection-led"></span>
+                            <span id="connection-status">CHECKING...</span>
+                        </span>
+                    </div>
+                    <div class="status-item">
+                        <span class="status-label">VIEWERS:</span>
+                        <span class="status-value" id="client-count">0</span>
+                    </div>
+                    <div class="status-item">
+                        <span class="status-label">ENDPOINT:</span>
+                        <span class="status-value endpoint">/stream</span>
+                    </div>
+                    <div class="status-item">
+                        <span class="status-label">PROTOCOL:</span>
+                        <span class="status-value">MJPEG</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Log de actividad -->
+            <section class="panel log-panel">
+                <div class="panel-header">
+                    <span class="panel-icon">[#]</span>
+                    <span class="panel-title">ACTIVITY_LOG</span>
+                </div>
+                <div class="panel-content">
+                    <div class="log-entries" id="log-entries">
+                        <!-- Los logs se insertan dinamicamente -->
+                    </div>
+                </div>
+            </section>
+        </aside>
+    </main>
+
+    <!-- Footer con info del sistema -->
+    <footer class="system-footer">
+        <span class="footer-item">NODE: ESP32-CAM_PROXY</span>
+        <span class="footer-item">PORT: 3001</span>
+        <span class="footer-item" id="uptime">UPTIME: 00:00:00</span>
+    </footer>
 
     <script src="script.js"></script>
 </body>
