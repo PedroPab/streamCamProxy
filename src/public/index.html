@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ESP32-CAM // SURVEILLANCE NODE</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Efecto scanlines overlay -->
+    <div class="scanlines"></div>
+
+    <!-- Header estilo terminal -->
+    <header class="terminal-header">
+        <div class="terminal-title">
+            <span class="prompt">[root@esp32cam]~#</span>
+            <span class="command">surveillance_feed --live</span>
+            <span class="cursor">_</span>
+        </div>
+        <div class="system-time" id="system-time">00:00:00</div>
+    </header>
+
+    <!-- Contenedor principal tipo dashboard -->
+    <main class="dashboard">
+        <!-- Panel del stream (principal) -->
+        <section class="panel stream-panel">
+            <div class="panel-header">
+                <span class="panel-icon">[*]</span>
+                <span class="panel-title">LIVE_FEED</span>
+                <span class="rec-indicator" id="rec-indicator">
+                    <span class="rec-dot"></span> REC
+                </span>
+            </div>
+            <div class="stream-container">
+                <img id="stream-img" src="/stream" alt="ESP32-CAM Stream">
+                <div class="stream-overlay" id="stream-overlay">
+                    <span class="loading-text">INITIALIZING FEED...</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Panel lateral de estadisticas -->
+        <aside class="sidebar">
+            <!-- Estado de conexion -->
+            <section class="panel status-panel">
+                <div class="panel-header">
+                    <span class="panel-icon">[&gt;]</span>
+                    <span class="panel-title">SYS_STATUS</span>
+                </div>
+                <div class="panel-content">
+                    <div class="status-item">
+                        <span class="status-label">CONNECTION:</span>
+                        <span class="status-value">
+                            <span class="led" id="connection-led"></span>
+                            <span id="connection-status">CHECKING...</span>
+                        </span>
+                    </div>
+                    <div class="status-item">
+                        <span class="status-label">VIEWERS:</span>
+                        <span class="status-value" id="client-count">0</span>
+                    </div>
+                    <div class="status-item">
+                        <span class="status-label">ENDPOINT:</span>
+                        <span class="status-value endpoint">/stream</span>
+                    </div>
+                    <div class="status-item">
+                        <span class="status-label">PROTOCOL:</span>
+                        <span class="status-value">MJPEG</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Controles de captura -->
+            <section class="panel controls-panel">
+                <div class="panel-header">
+                    <span class="panel-icon">[!]</span>
+                    <span class="panel-title">CAPTURE_CONTROLS</span>
+                </div>
+                <div class="panel-content">
+                    <div class="control-buttons">
+                        <button id="btn-capture" class="cyber-btn capture">
+                            <span class="btn-icon">[+]</span> CAPTURE
+                        </button>
+                        <button id="btn-record" class="cyber-btn record">
+                            <span class="btn-icon">[R]</span> <span id="record-text">REC</span>
+                        </button>
+                    </div>
+                    <div class="recording-status" id="recording-status">
+                        <span class="rec-timer" id="rec-timer">00:00:00</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Estadisticas de media -->
+            <section class="panel media-stats-panel">
+                <div class="panel-header">
+                    <span class="panel-icon">[=]</span>
+                    <span class="panel-title">MEDIA_STATS</span>
+                </div>
+                <div class="panel-content">
+                    <div class="status-item">
+                        <span class="status-label">PHOTOS:</span>
+                        <span class="status-value" id="photo-count">0</span>
+                    </div>
+                    <div class="status-item">
+                        <span class="status-label">VIDEOS:</span>
+                        <span class="status-value" id="video-count">0</span>
+                    </div>
+                    <button id="btn-gallery" class="cyber-btn gallery">
+                        <span class="btn-icon">[#]</span> GALLERY
+                    </button>
+                </div>
+            </section>
+
+            <!-- Log de actividad -->
+            <section class="panel log-panel">
+                <div class="panel-header">
+                    <span class="panel-icon">[~]</span>
+                    <span class="panel-title">ACTIVITY_LOG</span>
+                </div>
+                <div class="panel-content">
+                    <div class="log-entries" id="log-entries">
+                        <!-- Los logs se insertan dinamicamente -->
+                    </div>
+                </div>
+            </section>
+        </aside>
+    </main>
+
+    <!-- Footer con info del sistema -->
+    <footer class="system-footer">
+        <span class="footer-item">NODE: ESP32-CAM_PROXY</span>
+        <span class="footer-item">PORT: 3001</span>
+        <span class="footer-item" id="uptime">UPTIME: 00:00:00</span>
+    </footer>
+
+    <!-- Modal de galeria -->
+    <div class="gallery-modal" id="gallery-modal">
+        <div class="gallery-container">
+            <div class="gallery-header">
+                <span class="panel-title">MEDIA_GALLERY</span>
+                <button id="btn-close-gallery" class="cyber-btn close">[X]</button>
+            </div>
+            <div class="gallery-tabs">
+                <button class="tab-btn active" data-tab="photos">PHOTOS</button>
+                <button class="tab-btn" data-tab="videos">VIDEOS</button>
+            </div>
+            <div class="gallery-content" id="gallery-content">
+                <!-- Thumbnails insertados dinamicamente -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Flash overlay para captura -->
+    <div class="flash-overlay" id="flash-overlay"></div>
+
+    <!-- Modal visualizador multimedia -->
+    <div class="media-viewer" id="media-viewer">
+        <div class="viewer-backdrop"></div>
+        <div class="viewer-container">
+            <div class="viewer-header">
+                <div class="viewer-title">
+                    <span class="panel-icon">[&gt;]</span>
+                    <span id="viewer-filename">FILE_NAME</span>
+                </div>
+                <div class="viewer-controls-header">
+                    <button id="btn-download" class="viewer-btn" title="Download">
+                        <span>[↓]</span> DOWNLOAD
+                    </button>
+                    <button id="btn-delete" class="viewer-btn danger" title="Delete">
+                        <span>[X]</span> DELETE
+                    </button>
+                    <button id="btn-close-viewer" class="viewer-btn close" title="Close">
+                        [ESC]
+                    </button>
+                </div>
+            </div>
+            <div class="viewer-content">
+                <button id="btn-prev" class="nav-btn prev" title="Previous">&lt;</button>
+                <div class="viewer-media">
+                    <img id="viewer-image" class="viewer-img" alt="Preview">
+                    <div id="viewer-video" class="viewer-video">
+                        <img id="viewer-video-frame" class="viewer-video-frame" alt="Video frame">
+                        <div class="video-controls">
+                            <button id="btn-play-pause" class="video-btn">▶ PLAY</button>
+                            <div class="video-progress">
+                                <div class="video-progress-bar" id="video-progress-bar"></div>
+                            </div>
+                            <span id="video-time" class="video-time">00:00 / 00:00</span>
+                            <button id="btn-video-speed" class="video-btn speed">1x</button>
+                        </div>
+                    </div>
+                    <div id="viewer-loading" class="viewer-loading">
+                        <span class="loading-text">LOADING...</span>
+                    </div>
+                </div>
+                <button id="btn-next" class="nav-btn next" title="Next">&gt;</button>
+            </div>
+            <div class="viewer-footer">
+                <span id="viewer-info" class="viewer-info">-- / --</span>
+                <span id="viewer-date" class="viewer-date">--</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de confirmacion -->
+    <div class="confirm-modal" id="confirm-modal">
+        <div class="confirm-box">
+            <div class="confirm-header">
+                <span class="panel-icon">[!]</span>
+                <span>CONFIRM_DELETE</span>
+            </div>
+            <p class="confirm-message">Are you sure you want to delete this file?</p>
+            <p class="confirm-filename" id="confirm-filename"></p>
+            <div class="confirm-buttons">
+                <button id="btn-confirm-cancel" class="cyber-btn">CANCEL</button>
+                <button id="btn-confirm-delete" class="cyber-btn danger">DELETE</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

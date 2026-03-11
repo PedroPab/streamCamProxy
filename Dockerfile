@@ -15,7 +15,7 @@ RUN npm ci --omit=dev --no-optional
 COPY . .
 
 # Expone el puerto (ajusta si tu app usa otro)
-EXPOSE 3001
+EXPOSE ${PORT}
 
 # Comando por defecto para iniciar la app
 CMD ["node", "server.js"]
