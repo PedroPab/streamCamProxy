@@ -44,6 +44,18 @@ export class MediaViewer {
         this.setupEventListeners();
     }
 
+    getAuthHeaders() {
+        return this.mediaController.node.authManager
+            ? this.mediaController.node.authManager.getAuthHeaders()
+            : {};
+    }
+
+    getToken() {
+        return this.mediaController.node.authManager
+            ? this.mediaController.node.authManager.getAccessToken()
+            : '';
+    }
+
     setupEventListeners() {
         this.elements.btnClose?.addEventListener('click', () => this.close());
         this.elements.backdrop?.addEventListener('click', () => this.close());
@@ -140,7 +152,7 @@ export class MediaViewer {
             this.mediaController.node.addLog(`Failed to load: ${item.filename}`, 'error');
         };
 
-        img.src = `/media/file/${item.filename}`;
+        img.src = `/media/file/${item.filename}?token=${this.getToken()}`;
     }
 
     async loadVideo(item) {
@@ -150,7 +162,9 @@ export class MediaViewer {
         this.updateVideoTime();
 
         try {
-            const response = await fetch(`/media/file/${item.filename}`);
+            const response = await fetch(`/media/file/${item.filename}`, {
+                headers: this.getAuthHeaders()
+            });
             if (!response.ok) throw new Error('Failed to load video');
 
             const buffer = await response.arrayBuffer();
@@ -339,7 +353,7 @@ export class MediaViewer {
         if (!item) return;
 
         const link = document.createElement('a');
-        link.href = `/media/file/${item.filename}`;
+        link.href = `/media/file/${item.filename}?token=${this.getToken()}`;
         link.download = item.filename;
         document.body.appendChild(link);
         link.click();
@@ -372,7 +386,10 @@ export class MediaViewer {
         const type = isVideo ? 'video' : 'photo';
 
         try {
-            const res = await fetch(`/media/${type}/${item.id}`, { method: 'DELETE' });
+            const res = await fetch(`/media/${type}/${item.id}`, {
+                method: 'DELETE',
+                headers: this.getAuthHeaders()
+            });
             const data = await res.json();
 
             if (data.success) {

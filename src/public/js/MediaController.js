@@ -50,6 +50,10 @@ export class MediaController {
         });
     }
 
+    getAuthHeaders() {
+        return this.node.authManager ? this.node.authManager.getAuthHeaders() : {};
+    }
+
     async capturePhoto() {
         const btn = this.elements.btnCapture;
         if (!btn) return;
@@ -58,7 +62,10 @@ export class MediaController {
             btn.disabled = true;
             this.flashEffect();
 
-            const res = await fetch('/media/capture', { method: 'POST' });
+            const res = await fetch('/media/capture', {
+                method: 'POST',
+                headers: this.getAuthHeaders()
+            });
             const data = await res.json();
 
             if (data.success) {
@@ -96,7 +103,10 @@ export class MediaController {
         try {
             btn.disabled = true;
 
-            const res = await fetch('/media/record/start', { method: 'POST' });
+            const res = await fetch('/media/record/start', {
+                method: 'POST',
+                headers: this.getAuthHeaders()
+            });
             const data = await res.json();
 
             if (data.success) {
@@ -122,7 +132,10 @@ export class MediaController {
         try {
             btn.disabled = true;
 
-            const res = await fetch('/media/record/stop', { method: 'POST' });
+            const res = await fetch('/media/record/stop', {
+                method: 'POST',
+                headers: this.getAuthHeaders()
+            });
             const data = await res.json();
 
             if (data.success) {
@@ -228,7 +241,7 @@ export class MediaController {
         content.innerHTML = '<div class="gallery-empty">Loading...</div>';
 
         try {
-            const res = await fetch('/media');
+            const res = await fetch('/media', { headers: this.getAuthHeaders() });
             const data = await res.json();
 
             this.mediaItems.photos = data.photos || [];
@@ -262,6 +275,7 @@ export class MediaController {
         const date = new Date(item.timestamp);
         const dateStr = date.toLocaleDateString('es-ES');
         const timeStr = date.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+        const token = this.node.authManager ? this.node.authManager.getAccessToken() : '';
 
         if (isVideo) {
             const duration = this.formatDuration(item.duration);
@@ -273,7 +287,7 @@ export class MediaController {
         } else {
             return `
                 <div class="gallery-item" data-filename="${item.filename}" data-index="${index}">
-                    <img src="/media/file/${item.filename}" alt="${item.filename}" loading="lazy">
+                    <img src="/media/file/${item.filename}?token=${token}" alt="${item.filename}" loading="lazy">
                     <div class="item-info">${dateStr} ${timeStr}</div>
                 </div>
             `;

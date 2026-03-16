@@ -1,7 +1,8 @@
 import { MediaController } from './MediaController.js';
 
 export class SurveillanceNode {
-    constructor() {
+    constructor(authManager) {
+        this.authManager = authManager;
         this.elements = {
             streamImg: document.getElementById('stream-img'),
             streamOverlay: document.getElementById('stream-overlay'),
@@ -32,6 +33,7 @@ export class SurveillanceNode {
     }
 
     init() {
+        this.initStream();
         this.setupStreamListeners();
         this.startStatusPolling();
         this.startClock();
@@ -39,6 +41,12 @@ export class SurveillanceNode {
         this.mediaController = new MediaController(this);
         this.addLog('System initialized', 'info');
         this.addLog('Connecting to feed...', 'info');
+    }
+
+    initStream() {
+        if (this.elements.streamImg && this.authManager) {
+            this.elements.streamImg.src = this.authManager.getStreamUrl('/stream');
+        }
     }
 
     setupStreamListeners() {
@@ -63,8 +71,10 @@ export class SurveillanceNode {
         this.addLog('Feed connection lost', 'error');
 
         setTimeout(() => {
-            if (this.elements.streamImg) {
-                this.elements.streamImg.src = '/stream?' + Date.now();
+            if (this.elements.streamImg && this.authManager) {
+                const baseUrl = '/stream';
+                const token = this.authManager.getAccessToken();
+                this.elements.streamImg.src = `${baseUrl}?token=${token}&t=${Date.now()}`;
                 this.addLog('Attempting reconnection...', 'info');
             }
         }, 5000);
@@ -77,7 +87,13 @@ export class SurveillanceNode {
 
     async fetchStatus() {
         try {
-            const response = await fetch(this.config.statusEndpoint);
+            const headers = this.authManager ? this.authManager.getAuthHeaders() : {};
+            const response = await fetch(this.config.statusEndpoint, { headers });
+
+            if (response.status === 401) {
+                window.location.href = '/login.html';
+                return;
+            }
 
             if (!response.ok) {
                 throw new Error(`HTTP ${response.status}`);

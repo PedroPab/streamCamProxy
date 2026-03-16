@@ -1,4 +1,6 @@
 import express from 'express';
+import passport from 'passport';
+
 import { PORT_external } from './src/controller/initData.js';
 import homeRouter from './src/router/home.js';
 import streamRouter from './src/router/stream.js';
@@ -6,13 +8,21 @@ import statusRouter from './src/router/status/index.js';
 import mediaRouter from './src/router/media/index.js';
 import { initStorage } from './src/controller/storage.js';
 
+import authRouter from './src/router/auth/index.js';
+import usersRouter from './src/router/users/index.js';
+import { configurePassport } from './src/auth/passport.js';
+import { authenticate } from './src/auth/middleware/authenticate.js';
+import { initDatabase } from './src/database/index.js';
+import { seedAdminUser } from './src/database/seeds/admin.seed.js';
+
 const app = express();
 
-// Middleware para parsear JSON
 app.use(express.json());
 
-// Middleware para servir archivos estáticos desde la carpeta public
 app.use(express.static('src/public'));
+
+configurePassport();
+app.use(passport.initialize());
 
 app.use((req, res, next) => {
     console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
@@ -21,30 +31,58 @@ app.use((req, res, next) => {
 
 app.get('/', homeRouter);
 
-app.get('/stream', streamRouter);
+app.use('/auth', authRouter);
 
-app.use('/status', statusRouter);
-
-app.use('/media', mediaRouter);
+app.get('/stream', authenticate, streamRouter);
+app.use('/status', authenticate, statusRouter);
+app.use('/media', authenticate, mediaRouter);
+app.use('/users', usersRouter);
 
 app.use((req, res) => {
-    res.status(404).send('Not found');
+    res.status(404).json({
+        success: false,
+        error: 'Not found',
+        path: req.path
+    });
 });
 
-// Inicializar storage antes de escuchar
-initStorage().then(() => {
-    app.listen(PORT_external, () => {
-        console.log('='.repeat(60));
-        console.log(`🚀 Servidor proxy ESP32-CAM iniciado`);
-        console.log('='.repeat(60));
-        console.log(`📡 Servidor escuchando en: http://localhost:${PORT_external}/`);
-        console.log(`📹 Stream disponible en:   http://localhost:${PORT_external}/stream`);
-        console.log('='.repeat(60));
+app.use((err, req, res, next) => {
+    console.error('Error:', err);
+    res.status(500).json({
+        success: false,
+        error: 'Error interno del servidor',
+        message: process.env.NODE_ENV === 'development' ? err.message : undefined
     });
-}).catch((err) => {
-    console.error('Error al inicializar el almacenamiento:', err);
-}).finally(() => {
-    console.log('='.repeat(60));
-    console.log(`📁 Almacenamiento inicializado`);
-    console.log('='.repeat(60));
 });
+
+async function startServer() {
+    try {
+        initDatabase();
+
+        await seedAdminUser();
+
+        await initStorage();
+
+        app.listen(PORT_external, () => {
+            console.log('='.repeat(60));
+            console.log('Servidor proxy ESP32-CAM iniciado');
+            console.log('='.repeat(60));
+            console.log(`Servidor escuchando en: http://localhost:${PORT_external}/`);
+            console.log(`Stream disponible en:   http://localhost:${PORT_external}/stream`);
+            console.log(`Auth endpoints en:      http://localhost:${PORT_external}/auth`);
+            console.log('='.repeat(60));
+            console.log('Rutas de autenticacion:');
+            console.log('  POST /auth/login     - Iniciar sesion');
+            console.log('  POST /auth/register  - Registrar usuario');
+            console.log('  POST /auth/refresh   - Renovar token');
+            console.log('  POST /auth/logout    - Cerrar sesion');
+            console.log('  GET  /auth/me        - Usuario actual');
+            console.log('='.repeat(60));
+        });
+    } catch (error) {
+        console.error('Error al iniciar el servidor:', error);
+        process.exit(1);
+    }
+}
+
+startServer();

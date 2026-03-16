@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ESP32-CAM // AUTHENTICATE</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
+</head>
+<body class="login-page">
+    <div class="scanlines"></div>
+
+    <div class="login-container">
+        <div class="login-panel">
+            <div class="login-header">
+                <div class="terminal-title">
+                    <span class="prompt">[root@esp32cam]~#</span>
+                    <span class="command">authenticate</span>
+                    <span class="cursor">_</span>
+                </div>
+            </div>
+
+            <div class="login-content">
+                <div class="login-tabs">
+                    <button class="login-tab active" data-tab="login">LOGIN</button>
+                    <button class="login-tab" data-tab="register">REGISTER</button>
+                </div>
+
+                <form id="login-form" class="auth-form active">
+                    <div class="form-group">
+                        <label class="form-label">[EMAIL]</label>
+                        <input type="email" id="login-email" class="cyber-input" placeholder="user@domain.com" required autocomplete="email">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">[PASSWORD]</label>
+                        <input type="password" id="login-password" class="cyber-input" placeholder="********" required autocomplete="current-password">
+                    </div>
+                    <div id="login-error" class="form-error"></div>
+                    <button type="submit" class="cyber-btn submit">
+                        <span class="btn-icon">[>]</span> AUTHENTICATE
+                    </button>
+                </form>
+
+                <form id="register-form" class="auth-form">
+                    <div class="form-group">
+                        <label class="form-label">[USERNAME]</label>
+                        <input type="text" id="register-username" class="cyber-input" placeholder="operator_name" required autocomplete="username">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">[EMAIL]</label>
+                        <input type="email" id="register-email" class="cyber-input" placeholder="user@domain.com" required autocomplete="email">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">[PASSWORD]</label>
+                        <input type="password" id="register-password" class="cyber-input" placeholder="min. 6 characters" required autocomplete="new-password">
+                    </div>
+                    <div id="register-error" class="form-error"></div>
+                    <button type="submit" class="cyber-btn submit">
+                        <span class="btn-icon">[+]</span> CREATE_USER
+                    </button>
+                </form>
+            </div>
+
+            <div class="login-footer">
+                <span class="footer-text">ESP32-CAM SURVEILLANCE NODE v1.0</span>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { AuthManager } from './js/AuthManager.js';
+
+        const auth = new AuthManager();
+
+        if (auth.isAuthenticated()) {
+            window.location.href = '/';
+        }
+
+        const tabs = document.querySelectorAll('.login-tab');
+        const loginForm = document.getElementById('login-form');
+        const registerForm = document.getElementById('register-form');
+
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                tabs.forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+
+                if (tab.dataset.tab === 'login') {
+                    loginForm.classList.add('active');
+                    registerForm.classList.remove('active');
+                } else {
+                    registerForm.classList.add('active');
+                    loginForm.classList.remove('active');
+                }
+
+                document.getElementById('login-error').textContent = '';
+                document.getElementById('register-error').textContent = '';
+            });
+        });
+
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+            const errorEl = document.getElementById('login-error');
+            const btn = loginForm.querySelector('button[type="submit"]');
+
+            errorEl.textContent = '';
+            btn.disabled = true;
+            btn.innerHTML = '<span class="btn-icon">[~]</span> AUTHENTICATING...';
+
+            try {
+                await auth.login(email, password);
+                window.location.href = '/';
+            } catch (err) {
+                errorEl.textContent = err.message;
+                btn.disabled = false;
+                btn.innerHTML = '<span class="btn-icon">[>]</span> AUTHENTICATE';
+            }
+        });
+
+        registerForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const username = document.getElementById('register-username').value;
+            const email = document.getElementById('register-email').value;
+            const password = document.getElementById('register-password').value;
+            const errorEl = document.getElementById('register-error');
+            const btn = registerForm.querySelector('button[type="submit"]');
+
+            errorEl.textContent = '';
+            btn.disabled = true;
+            btn.innerHTML = '<span class="btn-icon">[~]</span> CREATING...';
+
+            try {
+                await auth.register(email, password, username);
+                window.location.href = '/';
+            } catch (err) {
+                errorEl.textContent = err.message;
+                btn.disabled = false;
+                btn.innerHTML = '<span class="btn-icon">[+]</span> CREATE_USER';
+            }
+        });
+    </script>
+</body>
+</html>
