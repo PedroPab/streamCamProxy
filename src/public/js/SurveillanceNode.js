@@ -21,15 +21,65 @@ export class SurveillanceNode {
             connected: false,
             clients: 0,
             startTime: Date.now(),
-            lastUpdate: null
+            lastUpdate: null,
+            currentStream: null
         };
 
         this.config = {
-            statusInterval: 3000,
-            statusEndpoint: '/status'
+            statusInterval: 3000
         };
 
         this.init();
+    }
+
+    /**
+     * Cambia al stream especificado
+     */
+    changeStream(stream) {
+        if (!stream) return;
+
+        const prevStream = this.state.currentStream;
+        this.state.currentStream = stream;
+
+        // Actualizar título del panel
+        const panelTitle = document.querySelector('.stream-panel .panel-title');
+        if (panelTitle) {
+            panelTitle.textContent = stream.name || 'LIVE_FEED';
+        }
+
+        // Actualizar endpoint info
+        const endpointEl = document.querySelector('.status-value.endpoint');
+        if (endpointEl) {
+            endpointEl.textContent = `/streams/${stream.id}/feed`;
+        }
+
+        // Mostrar overlay mientras carga
+        this.showOverlay('SWITCHING STREAM...');
+
+        // Cambiar fuente del stream
+        if (this.elements.streamImg && this.authManager) {
+            const token = this.authManager.getAccessToken();
+            this.elements.streamImg.src = `/streams/${stream.id}/feed?token=${token}&t=${Date.now()}`;
+        }
+
+        // Log del cambio
+        if (prevStream && prevStream.id !== stream.id) {
+            this.addLog(`Switched to: ${stream.name}`, 'info');
+        } else if (!prevStream) {
+            this.addLog(`Connected to: ${stream.name}`, 'info');
+        }
+
+        // Actualizar permisos en MediaController
+        if (this.mediaController) {
+            this.mediaController.updatePermissions(stream);
+        }
+
+        // Fetch status del nuevo stream
+        this.fetchStatus();
+    }
+
+    getCurrentStreamId() {
+        return this.state.currentStream?.id || null;
     }
 
     init() {
@@ -44,9 +94,9 @@ export class SurveillanceNode {
     }
 
     initStream() {
-        if (this.elements.streamImg && this.authManager) {
-            this.elements.streamImg.src = this.authManager.getStreamUrl('/stream');
-        }
+        // El stream se inicializa cuando StreamSelector selecciona uno
+        // Solo mostrar overlay inicial
+        this.showOverlay('SELECT A STREAM...');
     }
 
     setupStreamListeners() {
@@ -71,10 +121,10 @@ export class SurveillanceNode {
         this.addLog('Feed connection lost', 'error');
 
         setTimeout(() => {
-            if (this.elements.streamImg && this.authManager) {
-                const baseUrl = '/stream';
+            const streamId = this.getCurrentStreamId();
+            if (this.elements.streamImg && this.authManager && streamId) {
                 const token = this.authManager.getAccessToken();
-                this.elements.streamImg.src = `${baseUrl}?token=${token}&t=${Date.now()}`;
+                this.elements.streamImg.src = `/streams/${streamId}/feed?token=${token}&t=${Date.now()}`;
                 this.addLog('Attempting reconnection...', 'info');
             }
         }, 5000);
@@ -87,8 +137,14 @@ export class SurveillanceNode {
 
     async fetchStatus() {
         try {
+            const streamId = this.getCurrentStreamId();
+            if (!streamId) {
+                // No stream seleccionado, usar endpoint legacy
+                return;
+            }
+
             const headers = this.authManager ? this.authManager.getAuthHeaders() : {};
-            const response = await fetch(this.config.statusEndpoint, { headers });
+            const response = await fetch(`/streams/${streamId}/status`, { headers });
 
             if (response.status === 401) {
                 window.location.href = '/login.html';
@@ -99,8 +155,10 @@ export class SurveillanceNode {
                 throw new Error(`HTTP ${response.status}`);
             }
 
-            const data = await response.json();
-            this.updateStatus(data);
+            const result = await response.json();
+            if (result.success) {
+                this.updateStatus(result.data);
+            }
 
         } catch (error) {
             console.error('Status fetch error:', error);
@@ -144,10 +202,10 @@ export class SurveillanceNode {
 
     updateMediaStats(media) {
         if (this.elements.photoCount) {
-            this.elements.photoCount.textContent = media.photoCount || 0;
+            this.elements.photoCount.textContent = media.photos || media.photoCount || 0;
         }
         if (this.elements.videoCount) {
-            this.elements.videoCount.textContent = media.videoCount || 0;
+            this.elements.videoCount.textContent = media.videos || media.videoCount || 0;
         }
     }
 

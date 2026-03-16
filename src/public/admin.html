@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ESP32-CAM // ADMIN PANEL</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="admin.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="scanlines"></div>
+
+    <header class="terminal-header">
+        <div class="terminal-title">
+            <span class="prompt">[root@esp32cam]~#</span>
+            <span class="command">admin_panel --manage</span>
+            <span class="cursor">_</span>
+        </div>
+        <div class="user-info" id="user-info">
+            <a href="/" class="cyber-btn back-link">[DASHBOARD]</a>
+            <span class="user-role admin" id="user-role">[ADMIN]</span>
+            <span class="user-name" id="user-name">loading...</span>
+            <button id="btn-logout" class="cyber-btn logout">[EXIT]</button>
+        </div>
+        <div class="system-time" id="system-time">00:00:00</div>
+    </header>
+
+    <main class="admin-dashboard">
+        <nav class="admin-tabs">
+            <button class="admin-tab active" data-tab="users">
+                <span class="tab-icon">[U]</span> USERS
+            </button>
+            <button class="admin-tab" data-tab="groups">
+                <span class="tab-icon">[G]</span> GROUPS
+            </button>
+            <button class="admin-tab" data-tab="streams">
+                <span class="tab-icon">[S]</span> STREAMS
+            </button>
+            <button class="admin-tab" data-tab="permissions">
+                <span class="tab-icon">[P]</span> PERMISSIONS
+            </button>
+        </nav>
+
+        <div class="admin-content">
+            <!-- Users Tab -->
+            <section class="tab-panel active" id="panel-users">
+                <div class="panel-toolbar">
+                    <h2 class="panel-title">[USERS MANAGEMENT]</h2>
+                    <button class="cyber-btn" id="btn-add-user">[+] ADD USER</button>
+                </div>
+                <div class="data-table-container">
+                    <table class="data-table" id="users-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>EMAIL</th>
+                                <th>USERNAME</th>
+                                <th>ROLE</th>
+                                <th>STATUS</th>
+                                <th>GROUPS</th>
+                                <th>ACTIONS</th>
+                            </tr>
+                        </thead>
+                        <tbody id="users-tbody">
+                            <tr><td colspan="7" class="loading">Loading...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Groups Tab -->
+            <section class="tab-panel" id="panel-groups">
+                <div class="panel-toolbar">
+                    <h2 class="panel-title">[GROUPS MANAGEMENT]</h2>
+                    <button class="cyber-btn" id="btn-add-group">[+] ADD GROUP</button>
+                </div>
+                <div class="data-table-container">
+                    <table class="data-table" id="groups-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>NAME</th>
+                                <th>DESCRIPTION</th>
+                                <th>USERS</th>
+                                <th>CREATED</th>
+                                <th>ACTIONS</th>
+                            </tr>
+                        </thead>
+                        <tbody id="groups-tbody">
+                            <tr><td colspan="6" class="loading">Loading...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Streams Tab -->
+            <section class="tab-panel" id="panel-streams">
+                <div class="panel-toolbar">
+                    <h2 class="panel-title">[STREAMS MANAGEMENT]</h2>
+                    <button class="cyber-btn" id="btn-add-stream">[+] ADD STREAM</button>
+                </div>
+                <div class="data-table-container">
+                    <table class="data-table" id="streams-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>NAME</th>
+                                <th>HOST:PORT</th>
+                                <th>PUBLIC</th>
+                                <th>STATUS</th>
+                                <th>VIEWERS</th>
+                                <th>ACTIONS</th>
+                            </tr>
+                        </thead>
+                        <tbody id="streams-tbody">
+                            <tr><td colspan="7" class="loading">Loading...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Permissions Tab -->
+            <section class="tab-panel" id="panel-permissions">
+                <div class="panel-toolbar">
+                    <h2 class="panel-title">[PERMISSIONS MATRIX]</h2>
+                    <button class="cyber-btn" id="btn-save-permissions">[SAVE ALL]</button>
+                </div>
+                <div class="permissions-container">
+                    <table class="permissions-matrix" id="permissions-matrix">
+                        <thead id="permissions-thead">
+                            <tr><th>Loading...</th></tr>
+                        </thead>
+                        <tbody id="permissions-tbody">
+                            <tr><td class="loading">Loading...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="permissions-legend">
+                    <span class="legend-item"><span class="perm-icon view">V</span> View</span>
+                    <span class="legend-item"><span class="perm-icon capture">C</span> Capture</span>
+                    <span class="legend-item"><span class="perm-icon record">R</span> Record</span>
+                    <span class="legend-item"><span class="perm-icon admin">A</span> Admin</span>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- Modal para formularios -->
+    <div class="admin-modal" id="admin-modal">
+        <div class="modal-backdrop"></div>
+        <div class="modal-container">
+            <div class="modal-header">
+                <span class="modal-title" id="modal-title">FORM</span>
+                <button class="modal-close" id="modal-close">[X]</button>
+            </div>
+            <div class="modal-content" id="modal-content">
+                <!-- Contenido dinámico -->
+            </div>
+        </div>
+    </div>
+
+    <footer class="system-footer">
+        <span class="footer-item">ADMIN PANEL</span>
+        <span class="footer-item">ESP32-CAM_PROXY</span>
+        <span class="footer-item" id="uptime">SESSION: 00:00:00</span>
+    </footer>
+
+    <script type="module" src="js/admin/main.js"></script>
+</body>
+</html>

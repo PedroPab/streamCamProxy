@@ -58,29 +58,40 @@ body {
 .terminal-header {
     background: var(--bg-secondary);
     border-bottom: 1px solid var(--border-color);
-    padding: 15px 20px;
+    padding: 12px 20px;
     display: flex;
+    flex-wrap: wrap;
     justify-content: space-between;
     align-items: center;
+    gap: 10px;
     box-shadow: 0 2px 10px rgba(0, 255, 0, 0.1);
 }
 
 .terminal-title {
     font-size: 1.1rem;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    min-width: 0;
 }
 
 .prompt {
     color: var(--text-cyan);
+    white-space: nowrap;
 }
 
 .command {
     color: var(--text-primary);
     margin-left: 8px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .cursor {
     animation: blink 1s step-end infinite;
     color: var(--text-primary);
+    flex-shrink: 0;
 }
 
 @keyframes blink {
@@ -92,6 +103,8 @@ body {
     color: var(--text-secondary);
     font-size: 1.2rem;
     text-shadow: var(--glow-green);
+    white-space: nowrap;
+    flex-shrink: 0;
 }
 
 /* === Dashboard Layout === */
@@ -394,6 +407,7 @@ body {
 /* === Control Buttons === */
 .control-buttons {
     display: flex;
+    flex-wrap: wrap;
     gap: 10px;
     margin-bottom: 10px;
 }
@@ -403,7 +417,7 @@ body {
     border: 1px solid var(--border-color);
     color: var(--text-primary);
     font-family: inherit;
-    font-size: 0.85rem;
+    font-size: clamp(0.75rem, 2vw, 0.85rem);
     padding: 10px 15px;
     cursor: pointer;
     transition: all 0.2s;
@@ -411,7 +425,9 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 8px;
+    gap: 6px;
+    min-width: 0;
+    white-space: nowrap;
 }
 
 .cyber-btn:hover {
@@ -1033,25 +1049,28 @@ body {
 
 .form-group {
     margin-bottom: 20px;
+    width: 100%;
 }
 
 .form-label {
     display: block;
     color: var(--text-dim);
-    font-size: 0.8rem;
-    margin-bottom: 8px;
+    font-size: clamp(0.7rem, 2vw, 0.8rem);
+    margin-bottom: 6px;
     letter-spacing: 1px;
 }
 
 .cyber-input {
     width: 100%;
-    padding: 12px 15px;
+    min-width: 0;
+    padding: 10px 12px;
     background: var(--bg-primary);
     border: 1px solid var(--border-color);
     color: var(--text-primary);
     font-family: inherit;
-    font-size: 1rem;
+    font-size: clamp(0.85rem, 2vw, 1rem);
     transition: all 0.2s;
+    border-radius: 2px;
 }
 
 .cyber-input:focus {
@@ -1064,6 +1083,12 @@ body {
     color: var(--text-dim);
 }
 
+/* Input compact variant */
+.cyber-input.compact {
+    padding: 8px 10px;
+    font-size: 0.85rem;
+}
+
 .form-error {
     color: var(--text-error);
     font-size: 0.85rem;
@@ -1073,9 +1098,33 @@ body {
 
 .cyber-btn.submit {
     width: 100%;
-    padding: 15px;
-    font-size: 1rem;
+    padding: 12px;
+    font-size: clamp(0.85rem, 2.5vw, 1rem);
     letter-spacing: 2px;
+}
+
+@media (max-width: 480px) {
+    .login-container {
+        padding: 10px;
+    }
+
+    .login-header {
+        padding: 12px 15px;
+    }
+
+    .login-content {
+        padding: 15px;
+    }
+
+    .login-tabs {
+        margin-bottom: 15px;
+    }
+
+    .login-tab {
+        padding: 10px;
+        font-size: 0.8rem;
+        letter-spacing: 1px;
+    }
 }
 
 .login-footer {
@@ -1095,13 +1144,15 @@ body {
 .user-info {
     display: flex;
     align-items: center;
-    gap: 12px;
-    margin-left: auto;
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: center;
 }
 
 .user-role {
     color: var(--text-cyan);
     font-size: 0.8rem;
+    white-space: nowrap;
 }
 
 .user-role.admin {
@@ -1111,13 +1162,17 @@ body {
 .user-name {
     color: var(--text-secondary);
     font-size: 0.85rem;
+    max-width: 150px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .cyber-btn.logout {
     padding: 6px 12px;
     font-size: 0.8rem;
     background: transparent;
-    flex: 0;
+    flex: 0 0 auto;
 }
 
 .cyber-btn.logout:hover {
@@ -1127,20 +1182,50 @@ body {
 }
 
 /* === Responsive === */
-@media (max-width: 768px) {
-    .terminal-header {
-        flex-direction: column;
-        gap: 10px;
-        text-align: center;
-    }
 
-    .user-info {
-        margin-left: 0;
-        justify-content: center;
+/* Large tablets and small desktops */
+@media (max-width: 1024px) {
+    .terminal-header {
+        padding: 10px 15px;
     }
 
     .terminal-title {
-        font-size: 0.9rem;
+        font-size: 1rem;
+    }
+
+    .system-time {
+        font-size: 1rem;
+    }
+}
+
+/* Tablets */
+@media (max-width: 768px) {
+    .terminal-header {
+        flex-direction: column;
+        gap: 8px;
+        text-align: center;
+        padding: 10px;
+    }
+
+    .terminal-title {
+        font-size: 0.85rem;
+        justify-content: center;
+        width: 100%;
+    }
+
+    .command {
+        display: none;
+    }
+
+    .user-info {
+        width: 100%;
+        justify-content: center;
+        order: 2;
+    }
+
+    .system-time {
+        order: 1;
+        font-size: 0.95rem;
     }
 
     .system-footer {
@@ -1188,5 +1273,176 @@ body {
 
     .video-time {
         min-width: auto;
+    }
+
+    /* Inputs responsive */
+    .cyber-input {
+        padding: 10px;
+        font-size: 0.9rem;
+    }
+
+    .form-group {
+        margin-bottom: 15px;
+    }
+}
+
+/* Mobile phones */
+@media (max-width: 480px) {
+    .terminal-header {
+        padding: 8px;
+        gap: 6px;
+    }
+
+    .terminal-title {
+        font-size: 0.8rem;
+    }
+
+    .prompt {
+        font-size: 0.75rem;
+    }
+
+    .user-info {
+        gap: 6px;
+    }
+
+    .user-name {
+        max-width: 100px;
+        font-size: 0.75rem;
+    }
+
+    .user-role {
+        font-size: 0.7rem;
+    }
+
+    .cyber-btn.logout {
+        padding: 5px 8px;
+        font-size: 0.7rem;
+    }
+
+    .system-time {
+        font-size: 0.85rem;
+    }
+
+    .cyber-input {
+        padding: 8px;
+        font-size: 0.85rem;
+    }
+
+    .cyber-btn {
+        padding: 8px 12px;
+        font-size: 0.8rem;
+    }
+
+    .panel-content {
+        padding: 10px;
+    }
+}
+
+/* === Stream Selector Panel === */
+.stream-selector-panel {
+    margin-bottom: 15px;
+}
+
+.stream-selector-panel .stream-count {
+    color: var(--text-dim);
+    font-size: 0.8rem;
+    margin-left: 8px;
+}
+
+.stream-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.stream-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 12px;
+    background: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.stream-item:hover {
+    border-color: var(--text-secondary);
+}
+
+.stream-item.active {
+    border-color: var(--text-primary);
+    background: rgba(0, 255, 0, 0.05);
+    box-shadow: var(--glow-green);
+}
+
+.stream-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.stream-name {
+    color: var(--text-primary);
+    font-size: 0.9rem;
+}
+
+.stream-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.75rem;
+    color: var(--text-dim);
+}
+
+.stream-meta .viewers::before {
+    content: "viewers: ";
+}
+
+.stream-permissions {
+    display: flex;
+    gap: 4px;
+}
+
+.stream-permissions .perm {
+    font-size: 0.7rem;
+    color: var(--text-dim);
+}
+
+.stream-permissions .perm.admin {
+    color: var(--text-warning);
+}
+
+.no-streams {
+    color: var(--text-dim);
+    text-align: center;
+    padding: 20px;
+    font-size: 0.85rem;
+}
+
+/* === Admin Link === */
+.admin-link {
+    padding: 6px 12px;
+    font-size: 0.8rem;
+    background: transparent;
+    color: var(--text-warning);
+    border: 1px solid var(--text-warning);
+    text-decoration: none;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.admin-link:hover {
+    background: var(--text-warning);
+    color: var(--bg-primary);
+    box-shadow: 0 0 10px rgba(255, 170, 0, 0.5);
+}
+
+@media (max-width: 480px) {
+    .admin-link {
+        padding: 5px 8px;
+        font-size: 0.7rem;
     }
 }

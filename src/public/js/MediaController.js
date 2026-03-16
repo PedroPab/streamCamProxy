@@ -8,6 +8,8 @@ export class MediaController {
         this.recordingTimer = null;
         this.currentTab = 'photos';
         this.mediaItems = { photos: [], videos: [] };
+        this.currentStreamId = null;
+        this.permissions = { canCapture: false, canRecord: false };
 
         this.elements = {
             btnCapture: document.getElementById('btn-capture'),
@@ -28,6 +30,35 @@ export class MediaController {
     init() {
         this.setupEventListeners();
         this.viewer = new MediaViewer(this);
+    }
+
+    /**
+     * Actualiza los permisos según el stream actual
+     */
+    updatePermissions(stream) {
+        this.currentStreamId = stream?.id || null;
+        this.permissions = {
+            canCapture: stream?.canCapture || false,
+            canRecord: stream?.canRecord || false
+        };
+
+        // Actualizar UI de botones según permisos
+        const btnCapture = this.elements.btnCapture;
+        const btnRecord = this.elements.btnRecord;
+
+        if (btnCapture) {
+            btnCapture.disabled = !this.permissions.canCapture;
+            btnCapture.title = this.permissions.canCapture ? 'Capture photo' : 'No permission to capture';
+        }
+
+        if (btnRecord) {
+            btnRecord.disabled = !this.permissions.canRecord;
+            btnRecord.title = this.permissions.canRecord ? 'Toggle recording' : 'No permission to record';
+        }
+    }
+
+    getStreamId() {
+        return this.currentStreamId || this.node.getCurrentStreamId();
     }
 
     setupEventListeners() {
@@ -58,18 +89,24 @@ export class MediaController {
         const btn = this.elements.btnCapture;
         if (!btn) return;
 
+        const streamId = this.getStreamId();
+        if (!streamId) {
+            this.node.addLog('No stream selected', 'error');
+            return;
+        }
+
         try {
             btn.disabled = true;
             this.flashEffect();
 
-            const res = await fetch('/media/capture', {
+            const res = await fetch(`/streams/${streamId}/media/capture`, {
                 method: 'POST',
                 headers: this.getAuthHeaders()
             });
             const data = await res.json();
 
             if (data.success) {
-                this.node.addLog(`Photo captured: ${data.photo.filename}`, 'success');
+                this.node.addLog(`Photo captured: ${data.data.filename}`, 'success');
             } else {
                 this.node.addLog(`Capture failed: ${data.error}`, 'error');
             }
@@ -100,10 +137,16 @@ export class MediaController {
         const btn = this.elements.btnRecord;
         if (!btn) return;
 
+        const streamId = this.getStreamId();
+        if (!streamId) {
+            this.node.addLog('No stream selected', 'error');
+            return;
+        }
+
         try {
             btn.disabled = true;
 
-            const res = await fetch('/media/record/start', {
+            const res = await fetch(`/streams/${streamId}/media/record/start`, {
                 method: 'POST',
                 headers: this.getAuthHeaders()
             });
@@ -129,10 +172,16 @@ export class MediaController {
         const btn = this.elements.btnRecord;
         if (!btn) return;
 
+        const streamId = this.getStreamId();
+        if (!streamId) {
+            this.node.addLog('No stream selected', 'error');
+            return;
+        }
+
         try {
             btn.disabled = true;
 
-            const res = await fetch('/media/record/stop', {
+            const res = await fetch(`/streams/${streamId}/media/record/stop`, {
                 method: 'POST',
                 headers: this.getAuthHeaders()
             });
@@ -142,7 +191,7 @@ export class MediaController {
                 this.recording = false;
                 this.updateRecordingUI(false);
                 this.stopRecordingTimer();
-                this.node.addLog(`Video saved: ${data.video.filename}`, 'success');
+                this.node.addLog(`Video saved: ${data.data.video.filename}`, 'success');
             } else {
                 this.node.addLog(`Stop recording failed: ${data.error}`, 'error');
             }
@@ -240,14 +289,28 @@ export class MediaController {
 
         content.innerHTML = '<div class="gallery-empty">Loading...</div>';
 
+        const streamId = this.getStreamId();
+        if (!streamId) {
+            content.innerHTML = '<div class="gallery-empty">No stream selected</div>';
+            return;
+        }
+
         try {
-            const res = await fetch('/media', { headers: this.getAuthHeaders() });
-            const data = await res.json();
+            const type = this.currentTab === 'photos' ? 'photo' : 'video';
+            const res = await fetch(`/streams/${streamId}/media?type=${type}`, { headers: this.getAuthHeaders() });
+            const result = await res.json();
 
-            this.mediaItems.photos = data.photos || [];
-            this.mediaItems.videos = data.videos || [];
+            if (!result.success) {
+                throw new Error(result.error);
+            }
 
-            const items = this.currentTab === 'photos' ? this.mediaItems.photos : this.mediaItems.videos;
+            const items = result.data || [];
+
+            if (this.currentTab === 'photos') {
+                this.mediaItems.photos = items;
+            } else {
+                this.mediaItems.videos = items;
+            }
 
             if (!items || items.length === 0) {
                 content.innerHTML = `<div class="gallery-empty">No ${this.currentTab} yet</div>`;

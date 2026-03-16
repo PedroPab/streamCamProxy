@@ -1,5 +1,6 @@
 import { AuthManager } from './AuthManager.js';
 import { SurveillanceNode } from './SurveillanceNode.js';
+import { StreamSelector } from './StreamSelector.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
     const auth = new AuthManager();
@@ -26,6 +27,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (userName) {
             userName.textContent = user.email;
         }
+
+        // Agregar link a admin si es admin
+        if (user.role === 'admin') {
+            addAdminLink();
+        }
     }
 
     const logoutBtn = document.getElementById('btn-logout');
@@ -37,5 +43,25 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     window.authManager = auth;
-    window.surveillanceNode = new SurveillanceNode(auth);
+
+    // Crear SurveillanceNode
+    const surveillanceNode = new SurveillanceNode(auth);
+    window.surveillanceNode = surveillanceNode;
+
+    // Crear StreamSelector con callback para cambiar stream
+    const streamSelector = new StreamSelector(auth, (stream) => {
+        surveillanceNode.changeStream(stream);
+    });
+    window.streamSelector = streamSelector;
 });
+
+function addAdminLink() {
+    const userInfo = document.getElementById('user-info');
+    if (userInfo) {
+        const adminLink = document.createElement('a');
+        adminLink.href = '/admin.html';
+        adminLink.className = 'cyber-btn admin-link';
+        adminLink.textContent = '[ADMIN]';
+        userInfo.insertBefore(adminLink, userInfo.querySelector('#btn-logout'));
+    }
+}

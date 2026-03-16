@@ -10,10 +10,13 @@ import { initStorage } from './src/controller/storage.js';
 
 import authRouter from './src/router/auth/index.js';
 import usersRouter from './src/router/users/index.js';
+import adminRouter from './src/router/admin/index.js';
+import streamsRouter from './src/router/streams/index.js';
 import { configurePassport } from './src/auth/passport.js';
 import { authenticate } from './src/auth/middleware/authenticate.js';
 import { initDatabase } from './src/database/index.js';
 import { seedAdminUser } from './src/database/seeds/admin.seed.js';
+import { seedDefaultStreamAndGroup } from './src/database/seeds/default.seed.js';
 
 const app = express();
 
@@ -33,6 +36,13 @@ app.get('/', homeRouter);
 
 app.use('/auth', authRouter);
 
+// Rutas de streams (nuevo sistema multi-stream)
+app.use('/streams', streamsRouter);
+
+// Rutas de administración
+app.use('/admin', adminRouter);
+
+// Rutas legacy (mantener compatibilidad temporal)
 app.get('/stream', authenticate, streamRouter);
 app.use('/status', authenticate, statusRouter);
 app.use('/media', authenticate, mediaRouter);
@@ -60,6 +70,7 @@ async function startServer() {
         initDatabase();
 
         await seedAdminUser();
+        await seedDefaultStreamAndGroup();
 
         await initStorage();
 
@@ -68,15 +79,13 @@ async function startServer() {
             console.log('Servidor proxy ESP32-CAM iniciado');
             console.log('='.repeat(60));
             console.log(`Servidor escuchando en: http://localhost:${PORT_external}/`);
-            console.log(`Stream disponible en:   http://localhost:${PORT_external}/stream`);
-            console.log(`Auth endpoints en:      http://localhost:${PORT_external}/auth`);
+            console.log(`Panel admin en:         http://localhost:${PORT_external}/admin.html`);
             console.log('='.repeat(60));
-            console.log('Rutas de autenticacion:');
-            console.log('  POST /auth/login     - Iniciar sesion');
-            console.log('  POST /auth/register  - Registrar usuario');
-            console.log('  POST /auth/refresh   - Renovar token');
-            console.log('  POST /auth/logout    - Cerrar sesion');
-            console.log('  GET  /auth/me        - Usuario actual');
+            console.log('Rutas principales:');
+            console.log('  /streams              - API de streams (multi-stream)');
+            console.log('  /streams/:id/feed     - Stream MJPEG');
+            console.log('  /admin/*              - APIs de administracion');
+            console.log('  /auth/*               - Autenticacion');
             console.log('='.repeat(60));
         });
     } catch (error) {

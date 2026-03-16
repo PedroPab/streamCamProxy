@@ -1,0 +1,627 @@
+/* === Admin Panel Styles === */
+
+.back-link {
+    padding: 6px 12px;
+    font-size: 0.8rem;
+    background: transparent;
+    color: var(--text-cyan);
+    border: 1px solid var(--text-cyan);
+    border-color: var(--text-cyan);
+    text-decoration: none;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.back-link:hover {
+    background: var(--text-cyan);
+    color: var(--bg-primary);
+}
+
+@media (max-width: 480px) {
+    .back-link {
+        padding: 5px 8px;
+        font-size: 0.7rem;
+    }
+}
+
+.admin-dashboard {
+    padding: 20px;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+/* === Admin Tabs === */
+.admin-tabs {
+    display: flex;
+    gap: 5px;
+    margin-bottom: 20px;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 5px;
+}
+
+.admin-tab {
+    background: var(--bg-panel);
+    border: 1px solid var(--border-color);
+    color: var(--text-dim);
+    font-family: inherit;
+    font-size: 0.9rem;
+    padding: 12px 20px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.admin-tab:hover {
+    color: var(--text-secondary);
+    border-color: var(--text-secondary);
+}
+
+.admin-tab.active {
+    color: var(--text-primary);
+    border-color: var(--text-primary);
+    background: rgba(0, 255, 0, 0.05);
+    box-shadow: var(--glow-green);
+}
+
+.tab-icon {
+    color: var(--text-cyan);
+}
+
+/* === Tab Panels === */
+.tab-panel {
+    display: none;
+    background: var(--bg-panel);
+    border: 1px solid var(--border-color);
+    padding: 20px;
+}
+
+.tab-panel.active {
+    display: block;
+}
+
+.panel-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.panel-title {
+    color: var(--text-cyan);
+    font-size: 1rem;
+    font-weight: normal;
+}
+
+/* === Data Tables === */
+.data-table-container {
+    overflow-x: auto;
+}
+
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+}
+
+.data-table th,
+.data-table td {
+    padding: 12px 15px;
+    text-align: left;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.data-table th {
+    background: var(--bg-secondary);
+    color: var(--text-dim);
+    font-weight: normal;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-size: 0.75rem;
+}
+
+.data-table tbody tr:hover {
+    background: rgba(0, 255, 0, 0.03);
+}
+
+.data-table td.loading {
+    text-align: center;
+    color: var(--text-dim);
+    padding: 40px;
+}
+
+.data-table .status-badge {
+    display: inline-block;
+    padding: 4px 10px;
+    font-size: 0.75rem;
+    border: 1px solid;
+}
+
+.data-table .status-badge.active {
+    color: var(--text-primary);
+    border-color: var(--text-primary);
+}
+
+.data-table .status-badge.inactive {
+    color: var(--text-error);
+    border-color: var(--text-error);
+}
+
+.data-table .status-badge.online {
+    color: var(--text-primary);
+    border-color: var(--text-primary);
+}
+
+.data-table .status-badge.offline {
+    color: var(--text-dim);
+    border-color: var(--text-dim);
+}
+
+.data-table .role-badge {
+    display: inline-block;
+    padding: 4px 10px;
+    font-size: 0.75rem;
+    border: 1px solid;
+}
+
+.data-table .role-badge.admin {
+    color: var(--text-warning);
+    border-color: var(--text-warning);
+}
+
+.data-table .role-badge.user {
+    color: var(--text-cyan);
+    border-color: var(--text-cyan);
+}
+
+.data-table .action-btns {
+    display: flex;
+    gap: 8px;
+}
+
+.data-table .action-btn {
+    background: transparent;
+    border: 1px solid var(--border-color);
+    color: var(--text-dim);
+    font-family: inherit;
+    font-size: 0.75rem;
+    padding: 5px 10px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.data-table .action-btn:hover {
+    color: var(--text-primary);
+    border-color: var(--text-primary);
+}
+
+.data-table .action-btn.danger:hover {
+    color: var(--text-error);
+    border-color: var(--text-error);
+}
+
+.data-table .action-btn.test:hover {
+    color: var(--text-cyan);
+    border-color: var(--text-cyan);
+}
+
+/* === Permissions Matrix === */
+.permissions-container {
+    overflow-x: auto;
+}
+
+.permissions-matrix {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.8rem;
+}
+
+.permissions-matrix th,
+.permissions-matrix td {
+    padding: 10px;
+    text-align: center;
+    border: 1px solid var(--border-color);
+}
+
+.permissions-matrix th {
+    background: var(--bg-secondary);
+    color: var(--text-dim);
+    font-weight: normal;
+}
+
+.permissions-matrix th.stream-header {
+    color: var(--text-cyan);
+    min-width: 120px;
+}
+
+.permissions-matrix th.group-header {
+    text-align: left;
+    color: var(--text-warning);
+}
+
+.permissions-matrix .perm-cell {
+    display: flex;
+    gap: 5px;
+    justify-content: center;
+}
+
+.perm-checkbox {
+    width: 24px;
+    height: 24px;
+    background: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    color: var(--text-dim);
+    font-family: inherit;
+    font-size: 0.7rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.perm-checkbox:hover {
+    border-color: var(--text-secondary);
+}
+
+.perm-checkbox.checked {
+    border-color: var(--text-primary);
+    color: var(--text-primary);
+    background: rgba(0, 255, 0, 0.1);
+}
+
+.perm-checkbox.view.checked { color: var(--text-primary); }
+.perm-checkbox.capture.checked { color: var(--text-cyan); }
+.perm-checkbox.record.checked { color: var(--text-warning); }
+.perm-checkbox.admin.checked { color: var(--text-error); }
+
+.permissions-legend {
+    display: flex;
+    gap: 20px;
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 1px solid var(--border-color);
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--text-dim);
+    font-size: 0.8rem;
+}
+
+.perm-icon {
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid;
+    font-size: 0.7rem;
+}
+
+.perm-icon.view { color: var(--text-primary); border-color: var(--text-primary); }
+.perm-icon.capture { color: var(--text-cyan); border-color: var(--text-cyan); }
+.perm-icon.record { color: var(--text-warning); border-color: var(--text-warning); }
+.perm-icon.admin { color: var(--text-error); border-color: var(--text-error); }
+
+/* === Modal === */
+.admin-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1001;
+}
+
+.admin-modal.active {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-backdrop {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.9);
+}
+
+.modal-container {
+    position: relative;
+    background: var(--bg-panel);
+    border: 1px solid var(--border-color);
+    width: 90%;
+    max-width: 500px;
+    max-height: 80vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 20px;
+    background: var(--bg-secondary);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.modal-title {
+    color: var(--text-cyan);
+    font-size: 0.9rem;
+}
+
+.modal-close {
+    background: transparent;
+    border: none;
+    color: var(--text-dim);
+    font-family: inherit;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: color 0.2s;
+}
+
+.modal-close:hover {
+    color: var(--text-error);
+}
+
+.modal-content {
+    padding: 20px;
+    overflow-y: auto;
+}
+
+/* === Form Styles === */
+.admin-form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.admin-form .form-group {
+    margin-bottom: 0;
+}
+
+.admin-form .form-row {
+    display: flex;
+    gap: 15px;
+}
+
+.admin-form .form-row .form-group {
+    flex: 1;
+}
+
+.admin-form .form-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    padding-top: 15px;
+    border-top: 1px solid var(--border-color);
+}
+
+.admin-form select {
+    width: 100%;
+    min-width: 0;
+    padding: 10px 12px;
+    background: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+    font-family: inherit;
+    font-size: clamp(0.85rem, 2vw, 1rem);
+    border-radius: 2px;
+    cursor: pointer;
+}
+
+.admin-form select:focus {
+    outline: none;
+    border-color: var(--text-primary);
+    box-shadow: var(--glow-green);
+}
+
+/* Fix for select on mobile */
+.admin-form select option {
+    background: var(--bg-primary);
+    color: var(--text-primary);
+}
+
+.admin-form .checkbox-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.admin-form .checkbox-label {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    cursor: pointer;
+}
+
+.admin-form input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--text-primary);
+}
+
+/* === Groups in user row === */
+.user-groups {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+}
+
+.group-tag {
+    display: inline-block;
+    padding: 2px 8px;
+    font-size: 0.7rem;
+    background: rgba(0, 255, 255, 0.1);
+    border: 1px solid var(--text-cyan);
+    color: var(--text-cyan);
+}
+
+/* === Responsive === */
+
+/* Tablets */
+@media (max-width: 768px) {
+    .admin-dashboard {
+        padding: 10px;
+    }
+
+    .admin-tabs {
+        flex-wrap: wrap;
+        gap: 3px;
+    }
+
+    .admin-tab {
+        flex: 1 1 calc(50% - 3px);
+        justify-content: center;
+        padding: 10px 8px;
+        font-size: 0.75rem;
+        min-width: 0;
+    }
+
+    .admin-tab .tab-icon {
+        display: none;
+    }
+
+    .tab-panel {
+        padding: 15px;
+    }
+
+    .panel-toolbar {
+        flex-direction: column;
+        gap: 10px;
+        align-items: stretch;
+    }
+
+    .panel-toolbar .cyber-btn {
+        width: 100%;
+    }
+
+    .data-table {
+        font-size: 0.75rem;
+    }
+
+    .data-table th,
+    .data-table td {
+        padding: 8px 6px;
+    }
+
+    .data-table .action-btns {
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .data-table .action-btn {
+        font-size: 0.7rem;
+        padding: 4px 8px;
+    }
+
+    .admin-form .form-row {
+        flex-direction: column;
+    }
+
+    .admin-form select,
+    .admin-form .cyber-input {
+        padding: 10px;
+        font-size: 0.9rem;
+    }
+
+    .modal-container {
+        width: 95%;
+        max-height: 90vh;
+    }
+
+    .modal-content {
+        padding: 15px;
+    }
+
+    .permissions-legend {
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    .legend-item {
+        font-size: 0.7rem;
+    }
+}
+
+/* Mobile phones */
+@media (max-width: 480px) {
+    .admin-dashboard {
+        padding: 8px;
+    }
+
+    .admin-tabs {
+        gap: 2px;
+    }
+
+    .admin-tab {
+        padding: 8px 5px;
+        font-size: 0.7rem;
+    }
+
+    .tab-panel {
+        padding: 10px;
+    }
+
+    .panel-title {
+        font-size: 0.85rem;
+    }
+
+    .data-table th,
+    .data-table td {
+        padding: 6px 4px;
+        font-size: 0.7rem;
+    }
+
+    .data-table .role-badge,
+    .data-table .status-badge {
+        padding: 2px 6px;
+        font-size: 0.65rem;
+    }
+
+    .group-tag {
+        padding: 1px 5px;
+        font-size: 0.65rem;
+    }
+
+    .admin-form .form-actions {
+        flex-direction: column;
+    }
+
+    .admin-form .form-actions .cyber-btn {
+        width: 100%;
+    }
+
+    .permissions-matrix th,
+    .permissions-matrix td {
+        padding: 6px 4px;
+        font-size: 0.7rem;
+    }
+
+    .perm-checkbox {
+        width: 20px;
+        height: 20px;
+        font-size: 0.6rem;
+    }
+
+    .permissions-matrix .perm-cell {
+        gap: 2px;
+    }
+}
+
+/* Very small screens */
+@media (max-width: 360px) {
+    .admin-tab {
+        flex: 1 1 100%;
+    }
+}
