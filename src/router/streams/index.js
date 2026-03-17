@@ -6,6 +6,7 @@ import { MediaModel } from '../../models/media.model.js';
 import { GroupModel } from '../../models/group.model.js';
 import streamManager from '../../controller/streamManager.js';
 import { PHOTOS_DIR, formatTimestamp } from '../../controller/storage.js';
+import { emitLog } from '../../websocket/emitter.js';
 import { join } from 'path';
 import { writeFileSync, statSync } from 'fs';
 
@@ -140,6 +141,7 @@ router.post('/:id/media/capture', canCaptureStream, async (req, res) => {
         const frame = streamManager.getLastFrame(streamId);
 
         if (!frame) {
+            emitLog(streamId, 'Capture failed: No frames available', 'error');
             return res.status(400).json({
                 success: false,
                 error: 'No hay frames disponibles. Asegúrate de que el stream esté activo.'
@@ -162,12 +164,15 @@ router.post('/:id/media/capture', canCaptureStream, async (req, res) => {
             size: stats.size
         });
 
+        emitLog(streamId, `Photo captured: ${filename}`, 'success');
+
         res.json({
             success: true,
             data: photo
         });
     } catch (error) {
         console.error('Error capturando foto:', error);
+        emitLog(parseInt(req.params.id), `Capture error: ${error.message}`, 'error');
         res.status(500).json({
             success: false,
             error: 'Error al capturar foto'

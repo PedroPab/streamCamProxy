@@ -1,8 +1,10 @@
 import { MediaController } from './MediaController.js';
+import { SocketManager } from './SocketManager.js';
 
 export class SurveillanceNode {
     constructor(authManager) {
         this.authManager = authManager;
+        this.socketManager = new SocketManager(authManager);
         this.elements = {
             streamImg: document.getElementById('stream-img'),
             streamOverlay: document.getElementById('stream-overlay'),
@@ -22,7 +24,8 @@ export class SurveillanceNode {
             clients: 0,
             startTime: Date.now(),
             lastUpdate: null,
-            currentStream: null
+            currentStream: null,
+            feedConnected: false
         };
 
         this.config = {
@@ -39,7 +42,14 @@ export class SurveillanceNode {
         if (!stream) return;
 
         const prevStream = this.state.currentStream;
+
+        if (prevStream) {
+            this.socketManager.unsubscribeFromStream(prevStream.id);
+        }
+
         this.state.currentStream = stream;
+        this.state.feedConnected = false;
+        this.socketManager.subscribeToStream(stream.id);
 
         // Actualizar título del panel
         const panelTitle = document.querySelector('.stream-panel .panel-title');
@@ -84,9 +94,6 @@ export class SurveillanceNode {
         if (this.mediaController) {
             this.mediaController.updatePermissions(stream);
         }
-
-        // Fetch status del nuevo stream
-        this.fetchStatus();
     }
 
     getCurrentStreamId() {
@@ -96,12 +103,42 @@ export class SurveillanceNode {
     init() {
         this.initStream();
         this.setupStreamListeners();
-        this.startStatusPolling();
+        this.initWebSocket();
         this.startClock();
         this.startUptimeCounter();
         this.mediaController = new MediaController(this);
         this.addLog('System initialized', 'info');
         this.addLog('Connecting to feed...', 'info');
+    }
+
+    initWebSocket() {
+        this.socketManager.connect();
+
+        this.socketManager.on('connected', () => {
+            this.addLog('WebSocket connected', 'success');
+        });
+
+        this.socketManager.on('disconnected', (reason) => {
+            this.addLog(`WebSocket disconnected: ${reason}`, 'error');
+        });
+
+        this.socketManager.on('status', (data) => {
+            if (data.streamId === this.getCurrentStreamId()) {
+                this.updateStatus(data);
+            }
+        });
+
+        this.socketManager.on('log', (data) => {
+            if (data.streamId === this.getCurrentStreamId()) {
+                this.addLog(data.message, data.type);
+            }
+        });
+
+        this.socketManager.on('recording', (data) => {
+            if (data.streamId === this.getCurrentStreamId() && this.mediaController) {
+                this.mediaController.syncRecordingState(data);
+            }
+        });
     }
 
     initStream() {
@@ -131,7 +168,12 @@ export class SurveillanceNode {
             this.elements.streamImg.classList.remove('stream-loading');
         }
         this.hideOverlay();
-        this.addLog('Feed connection established', 'success');
+
+        // Solo mostrar log la primera vez que conecta
+        if (!this.state.feedConnected) {
+            this.state.feedConnected = true;
+            this.addLog('Feed connection established', 'success');
+        }
     }
 
     onStreamError() {
@@ -140,6 +182,7 @@ export class SurveillanceNode {
             this.elements.streamImg.classList.add('stream-loading');
         }
         this.showOverlay('FEED DISCONNECTED');
+        this.state.feedConnected = false;
         this.addLog('Feed connection lost', 'error');
 
         setTimeout(() => {
@@ -151,42 +194,6 @@ export class SurveillanceNode {
                 this.addLog('Attempting reconnection...', 'info');
             }
         }, 5000);
-    }
-
-    startStatusPolling() {
-        this.fetchStatus();
-        setInterval(() => this.fetchStatus(), this.config.statusInterval);
-    }
-
-    async fetchStatus() {
-        try {
-            const streamId = this.getCurrentStreamId();
-            if (!streamId) {
-                // No stream seleccionado, usar endpoint legacy
-                return;
-            }
-
-            const headers = this.authManager ? this.authManager.getAuthHeaders() : {};
-            const response = await fetch(`/streams/${streamId}/status`, { headers });
-
-            if (response.status === 401) {
-                window.location.href = '/login.html';
-                return;
-            }
-
-            if (!response.ok) {
-                throw new Error(`HTTP ${response.status}`);
-            }
-
-            const result = await response.json();
-            if (result.success) {
-                this.updateStatus(result.data);
-            }
-
-        } catch (error) {
-            console.error('Status fetch error:', error);
-            this.updateStatus({ connected: false, clients: 0, error: error.message });
-        }
     }
 
     updateStatus(data) {
@@ -216,10 +223,9 @@ export class SurveillanceNode {
         if (data.connected !== prevConnected) {
             if (data.connected) {
                 this.hideOverlay();
-                this.addLog('Camera connection restored', 'success');
-            } else {
-                this.addLog('Camera connection lost', 'error');
+                // Log se recibe via WebSocket
             }
+            // Los logs de conexión/desconexión se reciben via WebSocket
         }
     }
 

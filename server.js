@@ -1,7 +1,9 @@
 import express from 'express';
+import { createServer } from 'http';
 import passport from 'passport';
 
 import { PORT_external } from './src/controller/initData.js';
+import { initializeWebSocket } from './src/websocket/index.js';
 import homeRouter from './src/router/home.js';
 import streamRouter from './src/router/stream.js';
 import statusRouter from './src/router/status/index.js';
@@ -19,6 +21,7 @@ import { seedAdminUser } from './src/database/seeds/admin.seed.js';
 import { seedDefaultStreamAndGroup } from './src/database/seeds/default.seed.js';
 
 const app = express();
+const httpServer = createServer(app);
 
 app.use(express.json());
 
@@ -74,12 +77,15 @@ async function startServer() {
 
         await initStorage();
 
-        app.listen(PORT_external, () => {
+        initializeWebSocket(httpServer);
+
+        httpServer.listen(PORT_external, () => {
             console.log('='.repeat(60));
             console.log('Servidor proxy ESP32-CAM iniciado');
             console.log('='.repeat(60));
             console.log(`Servidor escuchando en: http://localhost:${PORT_external}/`);
             console.log(`Panel admin en:         http://localhost:${PORT_external}/admin.html`);
+            console.log(`WebSocket:              Habilitado`);
             console.log('='.repeat(60));
             console.log('Rutas principales:');
             console.log('  /streams              - API de streams (multi-stream)');

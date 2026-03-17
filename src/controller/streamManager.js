@@ -5,6 +5,7 @@ import { EventEmitter } from 'events';
 import { StreamModel } from '../models/stream.model.js';
 import { MediaModel } from '../models/media.model.js';
 import { VIDEOS_DIR, formatTimestamp } from './storage.js';
+import { emitStatus, emitLog, emitRecording } from '../websocket/emitter.js';
 
 // Marcadores JPEG
 const JPEG_START = Buffer.from([0xff, 0xd8]);
@@ -320,6 +321,13 @@ class StreamManager {
         console.log(`  Status: ${response.statusCode}`);
         console.log(`  Content-Type: ${connection.headers['content-type']}`);
 
+        emitStatus(connection.streamId, {
+            connected: true,
+            clients: connection.clients.size,
+            error: null
+        });
+        emitLog(connection.streamId, 'Camera connected', 'success');
+
         response.on('data', (chunk) => this.handleDataChunk(connection, chunk));
         response.on('end', () => this.handleStreamEnd(connection));
         response.on('error', (error) => this.handleStreamError(connection, error));
@@ -333,6 +341,13 @@ class StreamManager {
         connection.error = error.message;
         connection.reset();
         this.disconnectAllClients(connection, 'Error conectando a la cámara');
+
+        emitStatus(connection.streamId, {
+            connected: false,
+            clients: 0,
+            error: error.message
+        });
+        emitLog(connection.streamId, `Connection error: ${error.message}`, 'error');
     }
 
     /**
@@ -404,6 +419,11 @@ class StreamManager {
 
         connection.addClient(res);
 
+        emitStatus(streamId, {
+            connected: connection.connected,
+            clients: connection.clients.size
+        });
+
         // Iniciar conexión si es necesario
         if (!connection.connected && !connection.connecting) {
             this.connect(streamId);
@@ -420,6 +440,11 @@ class StreamManager {
         if (!connection) return;
 
         connection.removeClient(res);
+
+        emitStatus(streamId, {
+            connected: connection.connected,
+            clients: connection.clients.size
+        });
 
         // Si no hay más clientes, cerrar conexión
         if (connection.clients.size === 0 && connection.request) {
@@ -483,7 +508,12 @@ class StreamManager {
         if (!connection) {
             return { success: false, error: 'Stream no encontrado' };
         }
-        return connection.videoRecorder.start(capturedBy);
+        const result = connection.videoRecorder.start(capturedBy);
+        if (result.success) {
+            emitRecording(streamId, { recording: true, startTime: result.startTime });
+            emitLog(streamId, 'Recording started', 'success');
+        }
+        return result;
     }
 
     /**
@@ -494,7 +524,12 @@ class StreamManager {
         if (!connection) {
             return { success: false, error: 'Stream no encontrado' };
         }
-        return connection.videoRecorder.stop();
+        const result = await connection.videoRecorder.stop();
+        if (result.success) {
+            emitRecording(streamId, { recording: false });
+            emitLog(streamId, `Recording saved: ${result.video?.filename}`, 'success');
+        }
+        return result;
     }
 
     /**

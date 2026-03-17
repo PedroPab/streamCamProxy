@@ -99,19 +99,13 @@ export class MediaController {
             btn.disabled = true;
             this.flashEffect();
 
-            const res = await fetch(`/streams/${streamId}/media/capture`, {
+            await fetch(`/streams/${streamId}/media/capture`, {
                 method: 'POST',
                 headers: this.getAuthHeaders()
             });
-            const data = await res.json();
-
-            if (data.success) {
-                this.node.addLog(`Photo captured: ${data.data.filename}`, 'success');
-            } else {
-                this.node.addLog(`Capture failed: ${data.error}`, 'error');
-            }
+            // Logs se reciben via WebSocket
         } catch (error) {
-            this.node.addLog(`Capture error: ${error.message}`, 'error');
+            this.node.addLog(`Network error: ${error.message}`, 'error');
         } finally {
             btn.disabled = false;
         }
@@ -157,12 +151,11 @@ export class MediaController {
                 this.recordingStartTime = Date.now();
                 this.updateRecordingUI(true);
                 this.startRecordingTimer();
-                this.node.addLog('Recording started', 'success');
-            } else {
-                this.node.addLog(`Recording failed: ${data.error}`, 'error');
+                // Log se recibe via WebSocket
             }
+            // Errores se reciben via WebSocket
         } catch (error) {
-            this.node.addLog(`Recording error: ${error.message}`, 'error');
+            this.node.addLog(`Network error: ${error.message}`, 'error');
         } finally {
             btn.disabled = false;
         }
@@ -191,12 +184,11 @@ export class MediaController {
                 this.recording = false;
                 this.updateRecordingUI(false);
                 this.stopRecordingTimer();
-                this.node.addLog(`Video saved: ${data.data.video.filename}`, 'success');
-            } else {
-                this.node.addLog(`Stop recording failed: ${data.error}`, 'error');
+                // Log se recibe via WebSocket
             }
+            // Errores se reciben via WebSocket
         } catch (error) {
-            this.node.addLog(`Stop recording error: ${error.message}`, 'error');
+            this.node.addLog(`Network error: ${error.message}`, 'error');
         } finally {
             btn.disabled = false;
         }
