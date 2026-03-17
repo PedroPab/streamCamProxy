@@ -56,10 +56,21 @@ export class SurveillanceNode {
         // Mostrar overlay mientras carga
         this.showOverlay('SWITCHING STREAM...');
 
-        // Cambiar fuente del stream
-        if (this.elements.streamImg && this.authManager) {
-            const token = this.authManager.getAccessToken();
-            this.elements.streamImg.src = `/streams/${stream.id}/feed?token=${token}&t=${Date.now()}`;
+        // Limpiar imagen anterior antes de cargar la nueva
+        if (this.elements.streamImg) {
+            // Ocultar imagen anterior inmediatamente
+            this.elements.streamImg.classList.add('stream-loading');
+
+            // Limpiar src para detener stream anterior
+            this.elements.streamImg.src = '';
+
+            // Cargar nuevo stream después de un pequeño delay para asegurar limpieza
+            if (this.authManager) {
+                setTimeout(() => {
+                    const token = this.authManager.getAccessToken();
+                    this.elements.streamImg.src = `/streams/${stream.id}/feed?token=${token}&t=${Date.now()}`;
+                }, 50);
+            }
         }
 
         // Log del cambio
@@ -95,7 +106,10 @@ export class SurveillanceNode {
 
     initStream() {
         // El stream se inicializa cuando StreamSelector selecciona uno
-        // Solo mostrar overlay inicial
+        // Ocultar imagen y mostrar overlay inicial
+        if (this.elements.streamImg) {
+            this.elements.streamImg.classList.add('stream-loading');
+        }
         this.showOverlay('SELECT A STREAM...');
     }
 
@@ -112,11 +126,19 @@ export class SurveillanceNode {
     }
 
     onStreamLoad() {
+        // Mostrar imagen cuando carga exitosamente
+        if (this.elements.streamImg) {
+            this.elements.streamImg.classList.remove('stream-loading');
+        }
         this.hideOverlay();
         this.addLog('Feed connection established', 'success');
     }
 
     onStreamError() {
+        // Mantener imagen oculta en caso de error
+        if (this.elements.streamImg) {
+            this.elements.streamImg.classList.add('stream-loading');
+        }
         this.showOverlay('FEED DISCONNECTED');
         this.addLog('Feed connection lost', 'error');
 
@@ -124,6 +146,7 @@ export class SurveillanceNode {
             const streamId = this.getCurrentStreamId();
             if (this.elements.streamImg && this.authManager && streamId) {
                 const token = this.authManager.getAccessToken();
+                this.showOverlay('RECONNECTING...');
                 this.elements.streamImg.src = `/streams/${streamId}/feed?token=${token}&t=${Date.now()}`;
                 this.addLog('Attempting reconnection...', 'info');
             }

@@ -180,6 +180,11 @@ body {
     max-height: 100%;
     object-fit: contain;
     border: none;
+    transition: opacity 0.2s ease;
+}
+
+.stream-container img.stream-loading {
+    opacity: 0;
 }
 
 .stream-overlay {
