@@ -23,6 +23,13 @@ export function emitLog(streamId, message, type = 'info') {
 
 export function emitStatus(streamId, status) {
     emitToStream(streamId, 'stream:status', status);
+    // También emitir globalmente para StreamSelector
+    emitGlobal('streams:status', { streamId, ...status });
+}
+
+export function emitGlobal(event, data) {
+    if (!ioInstance) return;
+    ioInstance.emit(event, data);
 }
 
 export function emitRecording(streamId, recordingState) {

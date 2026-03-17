@@ -48,6 +48,7 @@ export class SocketManager {
         this.socket.on('stream:status', (data) => this.emit('status', data));
         this.socket.on('stream:log', (data) => this.emit('log', data));
         this.socket.on('stream:recording', (data) => this.emit('recording', data));
+        this.socket.on('streams:status', (data) => this.emit('streams:status', data));
         this.socket.on('error', (data) => this.emit('error', data));
     }
 

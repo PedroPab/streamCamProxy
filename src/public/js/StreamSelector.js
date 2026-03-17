@@ -2,9 +2,10 @@
  * StreamSelector - Componente para seleccionar y cambiar entre streams
  */
 export class StreamSelector {
-    constructor(authManager, onStreamChange) {
+    constructor(authManager, onStreamChange, socketManager = null) {
         this.authManager = authManager;
         this.onStreamChange = onStreamChange;
+        this.socketManager = socketManager;
         this.streams = [];
         this.currentStreamId = null;
         this.container = null;
@@ -16,14 +17,53 @@ export class StreamSelector {
         await this.loadStreams();
         this.render();
         this.setupEventListeners();
+        this.setupWebSocket();
 
         // Seleccionar primer stream por defecto
         if (this.streams.length > 0 && !this.currentStreamId) {
             this.selectStream(this.streams[0].id);
         }
+    }
 
-        // Actualizar status cada 5 segundos
-        setInterval(() => this.updateStatus(), 5000);
+    setupWebSocket() {
+        if (!this.socketManager) return;
+
+        // Escuchar actualizaciones de status de cualquier stream
+        this.socketManager.on('streams:status', (data) => {
+            this.updateStreamStatus(data.streamId, data);
+        });
+    }
+
+    updateStreamStatus(streamId, status) {
+        const stream = this.streams.find(s => s.id === streamId);
+        if (stream) {
+            stream.status = {
+                ...stream.status,
+                connected: status.connected,
+                clients: status.clients,
+                error: status.error
+            };
+            this.updateStreamItemUI(streamId);
+        }
+    }
+
+    updateStreamItemUI(streamId) {
+        const item = this.container?.querySelector(`[data-stream-id="${streamId}"]`);
+        if (!item) return;
+
+        const stream = this.streams.find(s => s.id === streamId);
+        if (!stream) return;
+
+        const led = item.querySelector('.led');
+        const viewers = item.querySelector('.viewers');
+
+        if (led) {
+            led.classList.remove('online', 'offline');
+            led.classList.add(stream.status?.connected ? 'online' : 'offline');
+        }
+        if (viewers) {
+            viewers.textContent = stream.status?.clients || 0;
+        }
     }
 
     async loadStreams() {
@@ -124,7 +164,7 @@ export class StreamSelector {
         }
     }
 
-    async updateStatus() {
+    async refreshStreams() {
         try {
             const headers = this.authManager.getAuthHeaders();
             const response = await fetch('/streams', { headers });
@@ -133,14 +173,13 @@ export class StreamSelector {
                 const data = await response.json();
                 this.streams = data.data || [];
 
-                // Actualizar solo la lista sin recrear todo
                 const listContainer = this.container?.querySelector('.stream-list');
                 if (listContainer) {
                     listContainer.innerHTML = this.renderStreamList();
                 }
             }
         } catch (error) {
-            console.error('Error updating streams:', error);
+            console.error('Error refreshing streams:', error);
         }
     }
 

@@ -55,10 +55,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     const surveillanceNode = new SurveillanceNode(auth);
     window.surveillanceNode = surveillanceNode;
 
-    // Crear StreamSelector con callback para cambiar stream
+    // Crear StreamSelector con callback para cambiar stream (pasando socketManager)
     const streamSelector = new StreamSelector(auth, (stream) => {
         surveillanceNode.changeStream(stream);
-    });
+    }, surveillanceNode.socketManager);
     window.streamSelector = streamSelector;
 });
 
