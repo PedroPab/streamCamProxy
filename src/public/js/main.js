@@ -3,6 +3,13 @@ import { SurveillanceNode } from './SurveillanceNode.js';
 import { StreamSelector } from './StreamSelector.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
+    // Verificar si hay mensaje de acceso denegado
+    const accessDenied = sessionStorage.getItem('accessDenied');
+    if (accessDenied) {
+        sessionStorage.removeItem('accessDenied');
+        showToast(accessDenied, 'error');
+    }
+
     const auth = new AuthManager();
 
     const isAuthenticated = await auth.checkAuth();
@@ -64,4 +71,39 @@ function addAdminLink() {
         adminLink.textContent = '[ADMIN]';
         userInfo.insertBefore(adminLink, userInfo.querySelector('#btn-logout'));
     }
+}
+
+function showToast(message, type = 'info') {
+    const icons = {
+        success: '[OK]',
+        error: '[X]',
+        warning: '[!]',
+        info: '[i]'
+    };
+
+    let container = document.getElementById('toast-container');
+    if (!container) {
+        container = document.createElement('div');
+        container.id = 'toast-container';
+        container.className = 'toast-container';
+        document.body.appendChild(container);
+    }
+
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    toast.innerHTML = `
+        <span class="toast-icon">${icons[type] || icons.info}</span>
+        <span class="toast-message">${message}</span>
+    `;
+
+    container.appendChild(toast);
+
+    const dismiss = () => {
+        if (toast.classList.contains('removing')) return;
+        toast.classList.add('removing');
+        setTimeout(() => toast.remove(), 300);
+    };
+
+    toast.addEventListener('click', dismiss);
+    setTimeout(dismiss, 5000);
 }

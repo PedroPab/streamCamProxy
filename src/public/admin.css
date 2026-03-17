@@ -625,3 +625,121 @@
         flex: 1 1 100%;
     }
 }
+
+/* === Cyber Confirm Modal === */
+.cyber-confirm {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 9998;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.9);
+}
+
+.cyber-confirm.active {
+    display: flex;
+}
+
+.cyber-confirm-box {
+    background: var(--bg-panel);
+    border: 1px solid var(--text-warning);
+    max-width: 420px;
+    width: 90%;
+    animation: confirmIn 0.2s ease-out;
+    box-shadow: 0 0 30px rgba(255, 170, 0, 0.2);
+}
+
+.cyber-confirm-header {
+    background: var(--bg-secondary);
+    padding: 12px 15px;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--text-warning);
+    font-size: 0.9rem;
+}
+
+.cyber-confirm-header .confirm-icon {
+    font-weight: bold;
+}
+
+.cyber-confirm-body {
+    padding: 25px 20px;
+    text-align: center;
+}
+
+.cyber-confirm-message {
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+    margin-bottom: 10px;
+}
+
+.cyber-confirm-target {
+    color: var(--text-primary);
+    font-size: 0.9rem;
+    word-break: break-all;
+    padding: 8px 12px;
+    background: var(--bg-primary);
+    border: 1px dashed var(--border-color);
+    display: inline-block;
+    margin-top: 5px;
+}
+
+.cyber-confirm-actions {
+    display: flex;
+    gap: 10px;
+    padding: 15px 20px;
+    border-top: 1px solid var(--border-color);
+    justify-content: flex-end;
+    background: var(--bg-secondary);
+}
+
+.cyber-confirm-actions .cyber-btn {
+    flex: 0;
+    min-width: 100px;
+}
+
+.cyber-confirm-actions .cyber-btn.danger {
+    border-color: var(--text-error);
+    color: var(--text-error);
+}
+
+.cyber-confirm-actions .cyber-btn.danger:hover {
+    background: var(--text-error);
+    color: var(--bg-primary);
+    box-shadow: 0 0 15px rgba(255, 51, 51, 0.5);
+}
+
+@keyframes confirmIn {
+    from {
+        opacity: 0;
+        transform: scale(0.9) translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+@media (max-width: 480px) {
+    .cyber-confirm-box {
+        width: 95%;
+    }
+
+    .cyber-confirm-body {
+        padding: 20px 15px;
+    }
+
+    .cyber-confirm-actions {
+        flex-direction: column;
+    }
+
+    .cyber-confirm-actions .cyber-btn {
+        width: 100%;
+    }
+}

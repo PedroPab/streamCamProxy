@@ -15,7 +15,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Verificar que es admin
     if (!user || user.role !== 'admin') {
-        alert('Access denied. Admin role required.');
+        sessionStorage.setItem('accessDenied', 'Admin role required to access this page.');
         window.location.href = '/';
         return;
     }

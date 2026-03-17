@@ -248,8 +248,12 @@ export class StreamManager {
         }
     }
 
-    confirmDeleteStream(stream) {
-        if (confirm(`Are you sure you want to delete stream "${stream.name}"?`)) {
+    async confirmDeleteStream(stream) {
+        const confirmed = await this.panel.showConfirm(
+            'Are you sure you want to delete this stream?',
+            stream.name
+        );
+        if (confirmed) {
             this.deleteStream(stream.id);
         }
     }

@@ -327,8 +327,12 @@ export class UserManager {
         }
     }
 
-    confirmDeleteUser(user) {
-        if (confirm(`Are you sure you want to delete user "${user.email}"?`)) {
+    async confirmDeleteUser(user) {
+        const confirmed = await this.panel.showConfirm(
+            'Are you sure you want to delete this user?',
+            user.email
+        );
+        if (confirmed) {
             this.deleteUser(user.id);
         }
     }

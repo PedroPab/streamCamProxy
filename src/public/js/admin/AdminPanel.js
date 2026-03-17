@@ -121,9 +121,106 @@ export class AdminPanel {
     }
 
     showNotification(message, type = 'info') {
-        // Simple notification
-        console.log(`[${type.toUpperCase()}] ${message}`);
-        alert(message);
+        const icons = {
+            success: '[OK]',
+            error: '[X]',
+            warning: '[!]',
+            info: '[i]'
+        };
+
+        let container = document.getElementById('toast-container');
+        if (!container) {
+            container = document.createElement('div');
+            container.id = 'toast-container';
+            container.className = 'toast-container';
+            document.body.appendChild(container);
+        }
+
+        const toast = document.createElement('div');
+        toast.className = `toast ${type}`;
+        toast.innerHTML = `
+            <span class="toast-icon">${icons[type] || icons.info}</span>
+            <span class="toast-message">${this.escapeHtml(message)}</span>
+        `;
+
+        container.appendChild(toast);
+
+        const dismiss = () => {
+            if (toast.classList.contains('removing')) return;
+            toast.classList.add('removing');
+            setTimeout(() => toast.remove(), 300);
+        };
+
+        toast.addEventListener('click', dismiss);
+        setTimeout(dismiss, 4000);
+    }
+
+    showConfirm(message, targetName = '') {
+        return new Promise((resolve) => {
+            let modal = document.getElementById('cyber-confirm');
+            if (!modal) {
+                modal = document.createElement('div');
+                modal.id = 'cyber-confirm';
+                modal.className = 'cyber-confirm';
+                modal.innerHTML = `
+                    <div class="cyber-confirm-box">
+                        <div class="cyber-confirm-header">
+                            <span class="confirm-icon">[!]</span>
+                            <span>CONFIRM_ACTION</span>
+                        </div>
+                        <div class="cyber-confirm-body">
+                            <p class="cyber-confirm-message"></p>
+                            <p class="cyber-confirm-target"></p>
+                        </div>
+                        <div class="cyber-confirm-actions">
+                            <button class="cyber-btn" data-action="cancel">CANCEL</button>
+                            <button class="cyber-btn danger" data-action="confirm">CONFIRM</button>
+                        </div>
+                    </div>
+                `;
+                document.body.appendChild(modal);
+            }
+
+            const messageEl = modal.querySelector('.cyber-confirm-message');
+            const targetEl = modal.querySelector('.cyber-confirm-target');
+
+            messageEl.textContent = message;
+            if (targetName) {
+                targetEl.textContent = targetName;
+                targetEl.style.display = 'inline-block';
+            } else {
+                targetEl.style.display = 'none';
+            }
+
+            modal.classList.add('active');
+
+            const cleanup = () => {
+                modal.classList.remove('active');
+                modal.removeEventListener('click', handleClick);
+                document.removeEventListener('keydown', handleKeydown);
+            };
+
+            const handleClick = (e) => {
+                const action = e.target.dataset.action;
+                if (action) {
+                    cleanup();
+                    resolve(action === 'confirm');
+                }
+            };
+
+            const handleKeydown = (e) => {
+                if (e.key === 'Escape') {
+                    cleanup();
+                    resolve(false);
+                } else if (e.key === 'Enter') {
+                    cleanup();
+                    resolve(true);
+                }
+            };
+
+            modal.addEventListener('click', handleClick);
+            document.addEventListener('keydown', handleKeydown);
+        });
     }
 
     escapeHtml(str) {

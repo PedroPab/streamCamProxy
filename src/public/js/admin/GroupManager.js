@@ -230,13 +230,17 @@ export class GroupManager {
         }
     }
 
-    confirmDeleteGroup(group) {
+    async confirmDeleteGroup(group) {
         if (group.name === 'default') {
             this.panel.showNotification('Cannot delete default group', 'error');
             return;
         }
 
-        if (confirm(`Are you sure you want to delete group "${group.name}"?`)) {
+        const confirmed = await this.panel.showConfirm(
+            'Are you sure you want to delete this group?',
+            group.name
+        );
+        if (confirmed) {
             this.deleteGroup(group.id);
         }
     }
