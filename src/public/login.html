@@ -53,7 +53,21 @@
                     </div>
                     <div class="form-group">
                         <label class="form-label">[PASSWORD]</label>
-                        <input type="password" id="register-password" class="cyber-input" placeholder="min. 6 characters" required autocomplete="new-password">
+                        <div class="password-wrapper">
+                            <input type="password" id="register-password" class="cyber-input" placeholder="min. 6 characters" required autocomplete="new-password">
+                            <button type="button" class="toggle-password" data-target="register-password" aria-label="Toggle password visibility">
+                                <span class="eye-icon">[O]</span>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">[CONFIRM_PASSWORD]</label>
+                        <div class="password-wrapper">
+                            <input type="password" id="register-confirm-password" class="cyber-input" placeholder="repeat password" required autocomplete="new-password">
+                            <button type="button" class="toggle-password" data-target="register-confirm-password" aria-label="Toggle password visibility">
+                                <span class="eye-icon">[O]</span>
+                            </button>
+                        </div>
                     </div>
                     <div id="register-error" class="form-error"></div>
                     <button type="submit" class="cyber-btn submit">
@@ -125,10 +139,17 @@
             const username = document.getElementById('register-username').value;
             const email = document.getElementById('register-email').value;
             const password = document.getElementById('register-password').value;
+            const confirmPassword = document.getElementById('register-confirm-password').value;
             const errorEl = document.getElementById('register-error');
             const btn = registerForm.querySelector('button[type="submit"]');
 
             errorEl.textContent = '';
+
+            if (password !== confirmPassword) {
+                errorEl.textContent = 'Las contraseñas no coinciden';
+                return;
+            }
+
             btn.disabled = true;
             btn.innerHTML = '<span class="btn-icon">[~]</span> CREATING...';
 
@@ -140,6 +161,23 @@
                 btn.disabled = false;
                 btn.innerHTML = '<span class="btn-icon">[+]</span> CREATE_USER';
             }
+        });
+
+        // Toggle password visibility
+        document.querySelectorAll('.toggle-password').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const targetId = btn.dataset.target;
+                const input = document.getElementById(targetId);
+                const icon = btn.querySelector('.eye-icon');
+
+                if (input.type === 'password') {
+                    input.type = 'text';
+                    icon.textContent = '[X]';
+                } else {
+                    input.type = 'password';
+                    icon.textContent = '[O]';
+                }
+            });
         });
     </script>
 </body>

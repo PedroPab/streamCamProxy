@@ -140,7 +140,21 @@ export class UserManager {
                 </div>
                 <div class="form-group">
                     <label class="form-label">PASSWORD</label>
-                    <input type="password" class="cyber-input" name="password" required>
+                    <div class="password-wrapper">
+                        <input type="password" class="cyber-input" name="password" id="admin-password" required>
+                        <button type="button" class="toggle-password" data-target="admin-password" aria-label="Toggle password visibility">
+                            <span class="eye-icon">[O]</span>
+                        </button>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">CONFIRM PASSWORD</label>
+                    <div class="password-wrapper">
+                        <input type="password" class="cyber-input" name="confirmPassword" id="admin-confirm-password" required>
+                        <button type="button" class="toggle-password" data-target="admin-confirm-password" aria-label="Toggle password visibility">
+                            <span class="eye-icon">[O]</span>
+                        </button>
+                    </div>
                 </div>
                 <div class="form-group">
                     <label class="form-label">ROLE</label>
@@ -149,6 +163,7 @@ export class UserManager {
                         <option value="admin">ADMIN</option>
                     </select>
                 </div>
+                <div id="user-form-error" class="form-error"></div>
                 <div class="form-actions">
                     <button type="button" class="cyber-btn" onclick="window.adminPanel.closeModal()">CANCEL</button>
                     <button type="submit" class="cyber-btn">CREATE</button>
@@ -157,10 +172,39 @@ export class UserManager {
         `;
 
         this.panel.openModal('[+] ADD USER', form);
+        this.setupPasswordToggles();
 
         document.getElementById('user-form')?.addEventListener('submit', async (e) => {
             e.preventDefault();
-            await this.createUser(new FormData(e.target));
+            const formData = new FormData(e.target);
+            const password = formData.get('password');
+            const confirmPassword = formData.get('confirmPassword');
+            const errorEl = document.getElementById('user-form-error');
+
+            if (password !== confirmPassword) {
+                errorEl.textContent = 'Las contraseñas no coinciden';
+                return;
+            }
+            errorEl.textContent = '';
+            await this.createUser(formData);
+        });
+    }
+
+    setupPasswordToggles() {
+        document.querySelectorAll('.toggle-password').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const targetId = btn.dataset.target;
+                const input = document.getElementById(targetId);
+                const icon = btn.querySelector('.eye-icon');
+
+                if (input.type === 'password') {
+                    input.type = 'text';
+                    icon.textContent = '[X]';
+                } else {
+                    input.type = 'password';
+                    icon.textContent = '[O]';
+                }
+            });
         });
     }
 

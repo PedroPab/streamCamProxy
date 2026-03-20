@@ -1094,6 +1094,39 @@ body {
     font-size: 0.85rem;
 }
 
+/* Password wrapper with toggle */
+.password-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.password-wrapper .cyber-input {
+    padding-right: 45px;
+}
+
+.toggle-password {
+    position: absolute;
+    right: 8px;
+    background: transparent;
+    border: 1px solid var(--border-color);
+    color: var(--text-dim);
+    font-family: inherit;
+    font-size: 0.75rem;
+    padding: 4px 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.toggle-password:hover {
+    color: var(--text-primary);
+    border-color: var(--text-primary);
+}
+
+.toggle-password .eye-icon {
+    display: block;
+}
+
 .form-error {
     color: var(--text-error);
     font-size: 0.85rem;
