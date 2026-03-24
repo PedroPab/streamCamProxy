@@ -4,6 +4,7 @@ import { canViewStream, canCaptureStream, canRecordStream, loadStreamPermissions
 import { PermissionModel } from '../../models/permission.model.js';
 import { MediaModel } from '../../models/media.model.js';
 import { GroupModel } from '../../models/group.model.js';
+import { StreamModel } from '../../models/stream.model.js';
 import streamManager from '../../controller/streamManager.js';
 import { PHOTOS_DIR, formatTimestamp } from '../../controller/storage.js';
 import { emitLog } from '../../websocket/emitter.js';
@@ -12,7 +13,127 @@ import { writeFileSync, statSync } from 'fs';
 
 const router = express.Router();
 
-// Todas las rutas requieren autenticación
+// ============================================
+// RUTAS PUBLICAS (sin autenticacion)
+// Permiten acceso a streams publicos para usuarios no registrados
+// ============================================
+
+// GET /streams/public - Listar streams publicos
+router.get('/public', (req, res) => {
+    try {
+        const streams = StreamModel.findPublic();
+
+        const streamsWithStatus = streams.map(stream => ({
+            id: stream.id,
+            name: stream.name,
+            description: stream.description,
+            isPublic: 1,
+            status: streamManager.getStreamStatus(stream.id),
+            // Permisos limitados para usuarios no autenticados
+            canView: true,
+            canCapture: false,
+            canRecord: false,
+            canAdmin: false
+        }));
+
+        res.json({
+            success: true,
+            data: streamsWithStatus
+        });
+    } catch (error) {
+        console.error('Error listando streams publicos:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Error al listar streams publicos'
+        });
+    }
+});
+
+// GET /streams/public/:id/feed - Feed MJPEG publico
+router.get('/public/:id/feed', (req, res) => {
+    try {
+        const streamId = parseInt(req.params.id);
+        const stream = StreamModel.findById(streamId);
+
+        // Verificar que el stream exista, sea publico y este activo
+        if (!stream || !stream.isPublic || !stream.isActive) {
+            return res.status(404).json({
+                success: false,
+                error: 'Stream no encontrado o no es publico'
+            });
+        }
+
+        // Configurar headers para MJPEG
+        const headers = streamManager.getStreamHeaders(streamId);
+        res.writeHead(200, {
+            'Content-Type': headers?.['content-type'] || 'multipart/x-mixed-replace; boundary=frame',
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            'Pragma': 'no-cache',
+            'Expires': '0',
+            'Connection': 'close'
+        });
+
+        // Agregar cliente al stream
+        streamManager.addClient(streamId, res);
+
+        // Manejar desconexion
+        req.on('close', () => {
+            streamManager.removeClient(streamId, res);
+        });
+    } catch (error) {
+        console.error('Error en feed publico:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Error al obtener feed'
+        });
+    }
+});
+
+// GET /streams/public/:id/status - Status publico del stream
+router.get('/public/:id/status', (req, res) => {
+    try {
+        const streamId = parseInt(req.params.id);
+        const stream = StreamModel.findById(streamId);
+
+        // Verificar que el stream exista y sea publico
+        if (!stream || !stream.isPublic) {
+            return res.status(404).json({
+                success: false,
+                error: 'Stream no disponible'
+            });
+        }
+
+        const status = streamManager.getStreamStatus(streamId);
+
+        res.json({
+            success: true,
+            data: {
+                id: stream.id,
+                name: stream.name,
+                connected: status?.connected || false,
+                clients: status?.clients || 0,
+                permissions: {
+                    canView: true,
+                    canCapture: false,
+                    canRecord: false,
+                    canAdmin: false
+                }
+            }
+        });
+    } catch (error) {
+        console.error('Error obteniendo status publico:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Error al obtener status'
+        });
+    }
+});
+
+// ============================================
+// RUTAS AUTENTICADAS
+// ============================================
+
+// Todas las rutas siguientes requieren autenticacion
 router.use(authenticate);
 
 // GET /streams - Listar streams accesibles para el usuario

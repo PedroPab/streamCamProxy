@@ -1,11 +1,14 @@
+import { URLRouter } from './URLRouter.js';
+
 /**
  * StreamSelector - Componente para seleccionar y cambiar entre streams
  */
 export class StreamSelector {
-    constructor(authManager, onStreamChange, socketManager = null) {
+    constructor(authManager, onStreamChange, socketManager = null, isPublicMode = false) {
         this.authManager = authManager;
         this.onStreamChange = onStreamChange;
         this.socketManager = socketManager;
+        this.isPublicMode = isPublicMode;
         this.streams = [];
         this.currentStreamId = null;
         this.container = null;
@@ -18,11 +21,28 @@ export class StreamSelector {
         this.render();
         this.setupEventListeners();
         this.setupWebSocket();
+        this.setupURLRouting();
 
-        // Seleccionar primer stream por defecto
-        if (this.streams.length > 0 && !this.currentStreamId) {
+        // Verificar si hay stream en la URL
+        const urlStreamId = URLRouter.getStreamIdFromURL();
+        const streamFromURL = urlStreamId ? this.streams.find(s => s.id === urlStreamId) : null;
+
+        if (streamFromURL) {
+            // Seleccionar stream de la URL
+            this.selectStream(urlStreamId);
+        } else if (this.streams.length > 0 && !this.currentStreamId) {
+            // Seleccionar primer stream por defecto
             this.selectStream(this.streams[0].id);
         }
+    }
+
+    setupURLRouting() {
+        // Escuchar cambios en el historial (botones atrás/adelante)
+        URLRouter.onPopState((streamId) => {
+            if (streamId && this.streams.find(s => s.id === streamId)) {
+                this.selectStream(streamId, false); // false = no actualizar URL
+            }
+        });
     }
 
     setupWebSocket() {
@@ -68,8 +88,16 @@ export class StreamSelector {
 
     async loadStreams() {
         try {
-            const headers = this.authManager.getAuthHeaders();
-            const response = await fetch('/streams', { headers });
+            let response;
+
+            if (this.isPublicMode) {
+                // Modo público - solo streams públicos, sin autenticación
+                response = await fetch('/streams/public');
+            } else {
+                // Modo autenticado - todos los streams accesibles
+                const headers = this.authManager.getAuthHeaders();
+                response = await fetch('/streams', { headers });
+            }
 
             if (!response.ok) {
                 throw new Error('Error cargando streams');
@@ -147,7 +175,7 @@ export class StreamSelector {
         });
     }
 
-    selectStream(streamId) {
+    selectStream(streamId, updateURL = true) {
         if (streamId === this.currentStreamId) return;
 
         this.currentStreamId = streamId;
@@ -158,6 +186,11 @@ export class StreamSelector {
             item.classList.toggle('active', parseInt(item.dataset.streamId) === streamId);
         });
 
+        // Actualizar URL para permitir compartir
+        if (updateURL) {
+            URLRouter.updateURL(streamId);
+        }
+
         // Notificar al callback
         if (this.onStreamChange && stream) {
             this.onStreamChange(stream);
@@ -166,8 +199,14 @@ export class StreamSelector {
 
     async refreshStreams() {
         try {
-            const headers = this.authManager.getAuthHeaders();
-            const response = await fetch('/streams', { headers });
+            let response;
+
+            if (this.isPublicMode) {
+                response = await fetch('/streams/public');
+            } else {
+                const headers = this.authManager.getAuthHeaders();
+                response = await fetch('/streams', { headers });
+            }
 
             if (response.ok) {
                 const data = await response.json();

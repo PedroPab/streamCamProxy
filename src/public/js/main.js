@@ -11,14 +11,38 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     const auth = new AuthManager();
-
     const isAuthenticated = await auth.checkAuth();
 
-    if (!isAuthenticated) {
-        window.location.href = '/login.html';
-        return;
+    // Variable global para modo público
+    window.isPublicMode = !isAuthenticated;
+    window.authManager = isAuthenticated ? auth : null;
+
+    if (isAuthenticated) {
+        // Usuario autenticado - flujo normal
+        setupAuthenticatedUser(auth);
+    } else {
+        // Usuario anónimo - modo público
+        setupPublicMode();
     }
 
+    // Crear SurveillanceNode (funciona en ambos modos)
+    const surveillanceNode = new SurveillanceNode(auth, isAuthenticated);
+    window.surveillanceNode = surveillanceNode;
+
+    // Crear StreamSelector con callback para cambiar stream
+    const streamSelector = new StreamSelector(
+        auth,
+        (stream) => surveillanceNode.changeStream(stream),
+        isAuthenticated ? surveillanceNode.socketManager : null,
+        !isAuthenticated // isPublicMode
+    );
+    window.streamSelector = streamSelector;
+
+    // Inicializar modal de información
+    initInfoModal();
+});
+
+function setupAuthenticatedUser(auth) {
     const user = auth.getUser();
     if (user) {
         const userRole = document.getElementById('user-role');
@@ -50,17 +74,78 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     window.authManager = auth;
+}
 
-    // Crear SurveillanceNode
-    const surveillanceNode = new SurveillanceNode(auth);
-    window.surveillanceNode = surveillanceNode;
+function setupPublicMode() {
+    // Reemplazar user-info con botones de login/registro
+    const userInfo = document.getElementById('user-info');
+    if (userInfo) {
+        userInfo.innerHTML = `
+            <a href="/login.html" class="cyber-btn login-link">[LOGIN]</a>
+            <a href="/login.html#register" class="cyber-btn register-link">[REGISTER]</a>
+        `;
+    }
 
-    // Crear StreamSelector con callback para cambiar stream (pasando socketManager)
-    const streamSelector = new StreamSelector(auth, (stream) => {
-        surveillanceNode.changeStream(stream);
-    }, surveillanceNode.socketManager);
-    window.streamSelector = streamSelector;
-});
+    // Mostrar banner de invitación a registrarse
+    showPublicBanner();
+}
+
+function showPublicBanner() {
+    const banner = document.createElement('div');
+    banner.className = 'public-access-banner';
+    banner.innerHTML = `
+        <span class="banner-icon">[i]</span>
+        <span class="banner-text">MODO PUBLICO: Registrate para capturar, grabar y acceder a mas streams</span>
+        <a href="/login.html#register" class="cyber-btn banner-btn">[REGISTRARSE]</a>
+    `;
+    document.body.insertBefore(banner, document.body.firstChild);
+}
+
+function initInfoModal() {
+    const btnInfo = document.getElementById('btn-info');
+    const infoModal = document.getElementById('info-modal');
+    const btnCloseInfo = document.getElementById('btn-close-info');
+    const btnCopyUrl = document.getElementById('btn-copy-url');
+
+    if (btnInfo && infoModal) {
+        btnInfo.addEventListener('click', () => {
+            infoModal.classList.add('active');
+        });
+
+        btnCloseInfo?.addEventListener('click', () => {
+            infoModal.classList.remove('active');
+        });
+
+        // Cerrar al hacer click en backdrop
+        infoModal.addEventListener('click', (e) => {
+            if (e.target === infoModal) {
+                infoModal.classList.remove('active');
+            }
+        });
+
+        // Cerrar con ESC
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && infoModal.classList.contains('active')) {
+                infoModal.classList.remove('active');
+            }
+        });
+    }
+
+    // Botón copiar URL
+    if (btnCopyUrl) {
+        btnCopyUrl.addEventListener('click', async () => {
+            try {
+                await navigator.clipboard.writeText(window.location.href);
+                btnCopyUrl.innerHTML = '<span>[OK]</span> COPIADO!';
+                setTimeout(() => {
+                    btnCopyUrl.innerHTML = '<span>[#]</span> COPIAR_URL';
+                }, 2000);
+            } catch (err) {
+                console.error('Error copiando URL:', err);
+            }
+        });
+    }
+}
 
 function addAdminLink() {
     const userInfo = document.getElementById('user-info');

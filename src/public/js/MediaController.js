@@ -37,23 +37,52 @@ export class MediaController {
      */
     updatePermissions(stream) {
         this.currentStreamId = stream?.id || null;
-        this.permissions = {
-            canCapture: stream?.canCapture || false,
-            canRecord: stream?.canRecord || false
-        };
+
+        // Si es modo público, forzar permisos a false
+        if (window.isPublicMode) {
+            this.permissions = {
+                canCapture: false,
+                canRecord: false
+            };
+        } else {
+            this.permissions = {
+                canCapture: stream?.canCapture || false,
+                canRecord: stream?.canRecord || false
+            };
+        }
 
         // Actualizar UI de botones según permisos
         const btnCapture = this.elements.btnCapture;
         const btnRecord = this.elements.btnRecord;
+        const btnGallery = this.elements.btnGallery;
 
         if (btnCapture) {
             btnCapture.disabled = !this.permissions.canCapture;
-            btnCapture.title = this.permissions.canCapture ? 'Capture photo' : 'No permission to capture';
+            if (window.isPublicMode) {
+                btnCapture.title = 'Registrate para capturar fotos';
+            } else {
+                btnCapture.title = this.permissions.canCapture ? 'Capture photo' : 'No permission to capture';
+            }
         }
 
         if (btnRecord) {
             btnRecord.disabled = !this.permissions.canRecord;
-            btnRecord.title = this.permissions.canRecord ? 'Toggle recording' : 'No permission to record';
+            if (window.isPublicMode) {
+                btnRecord.title = 'Registrate para grabar video';
+            } else {
+                btnRecord.title = this.permissions.canRecord ? 'Toggle recording' : 'No permission to record';
+            }
+        }
+
+        // En modo público, también deshabilitar galería
+        if (btnGallery) {
+            if (window.isPublicMode) {
+                btnGallery.disabled = true;
+                btnGallery.title = 'Registrate para ver la galeria';
+            } else {
+                btnGallery.disabled = false;
+                btnGallery.title = 'Open gallery';
+            }
         }
     }
 

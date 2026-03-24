@@ -24,6 +24,7 @@
             <span class="user-name" id="user-name">loading...</span>
             <button id="btn-logout" class="cyber-btn logout">[EXIT]</button>
         </div>
+        <button id="btn-info" class="cyber-btn info-btn" title="Informacion del proyecto">[?]</button>
         <div class="system-time" id="system-time">00:00:00</div>
     </header>
 
@@ -222,6 +223,66 @@
             <div class="confirm-buttons">
                 <button id="btn-confirm-cancel" class="cyber-btn">CANCEL</button>
                 <button id="btn-confirm-delete" class="cyber-btn danger">DELETE</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de informacion del proyecto -->
+    <div class="info-modal" id="info-modal">
+        <div class="info-container">
+            <div class="info-header">
+                <div class="info-header-title">
+                    <span class="panel-icon">[?]</span>
+                    <span class="panel-title">PROJECT_INFO</span>
+                </div>
+                <button id="btn-close-info" class="cyber-btn close">[X]</button>
+            </div>
+            <div class="info-content">
+                <div class="info-section">
+                    <h3 class="info-title">[NOMBRE_DEL_PROYECTO]</h3>
+                    <p class="info-text">
+                        ESP32-CAM Surveillance Node - Sistema de vigilancia en tiempo real.
+                    </p>
+                </div>
+
+                <div class="info-section">
+                    <h3 class="info-title">[DESCRIPCION]</h3>
+                    <p class="info-text">
+                        <!-- Agrega aqui la descripcion de tu proyecto -->
+                        Sistema de streaming de video en tiempo real utilizando camaras ESP32-CAM.
+                        Permite visualizar multiples feeds, capturar fotos y grabar videos.
+                    </p>
+                </div>
+
+                <div class="info-section">
+                    <h3 class="info-title">[REPOSITORIO]</h3>
+                    <a href="https://github.com/tu-usuario/streamCam" class="info-link" target="_blank" rel="noopener">
+                        <span class="link-icon">[>]</span>
+                        github.com/tu-usuario/streamCam
+                    </a>
+                </div>
+
+                <div class="info-section">
+                    <h3 class="info-title">[COMPARTIR]</h3>
+                    <p class="info-text">
+                        Si te gusta el proyecto, considera compartirlo o contribuir al repositorio.
+                    </p>
+                    <div class="share-buttons">
+                        <button class="cyber-btn share-btn" id="btn-copy-url">
+                            <span>[#]</span> COPIAR_URL
+                        </button>
+                    </div>
+                </div>
+
+                <div class="info-section">
+                    <h3 class="info-title">[TECNOLOGIAS]</h3>
+                    <p class="info-text">
+                        Node.js + Express + Socket.IO + ESP32-CAM + MJPEG Streaming
+                    </p>
+                </div>
+            </div>
+            <div class="info-footer">
+                <span class="footer-text">Desarrollado con Express + Socket.IO + ESP32-CAM</span>
             </div>
         </div>
     </div>

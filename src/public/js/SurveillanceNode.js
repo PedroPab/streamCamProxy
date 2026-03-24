@@ -2,9 +2,17 @@ import { MediaController } from './MediaController.js';
 import { SocketManager } from './SocketManager.js';
 
 export class SurveillanceNode {
-    constructor(authManager) {
+    constructor(authManager, isAuthenticated = true) {
         this.authManager = authManager;
-        this.socketManager = new SocketManager(authManager);
+        this.isAuthenticated = isAuthenticated;
+
+        // Solo inicializar WebSocket si está autenticado
+        if (isAuthenticated) {
+            this.socketManager = new SocketManager(authManager);
+        } else {
+            this.socketManager = null;
+        }
+
         this.elements = {
             streamImg: document.getElementById('stream-img'),
             streamOverlay: document.getElementById('stream-overlay'),
@@ -43,13 +51,16 @@ export class SurveillanceNode {
 
         const prevStream = this.state.currentStream;
 
-        if (prevStream) {
-            this.socketManager.unsubscribeFromStream(prevStream.id);
+        // Solo usar WebSocket si está autenticado
+        if (this.socketManager) {
+            if (prevStream) {
+                this.socketManager.unsubscribeFromStream(prevStream.id);
+            }
+            this.socketManager.subscribeToStream(stream.id);
         }
 
         this.state.currentStream = stream;
         this.state.feedConnected = false;
-        this.socketManager.subscribeToStream(stream.id);
 
         // Actualizar título del panel
         const panelTitle = document.querySelector('.stream-panel .panel-title');
@@ -60,7 +71,10 @@ export class SurveillanceNode {
         // Actualizar endpoint info
         const endpointEl = document.querySelector('.status-value.endpoint');
         if (endpointEl) {
-            endpointEl.textContent = `/streams/${stream.id}/feed`;
+            const endpoint = this.isAuthenticated
+                ? `/streams/${stream.id}/feed`
+                : `/streams/public/${stream.id}/feed`;
+            endpointEl.textContent = endpoint;
         }
 
         // Mostrar overlay mientras carga
@@ -75,12 +89,16 @@ export class SurveillanceNode {
             this.elements.streamImg.src = '';
 
             // Cargar nuevo stream después de un pequeño delay para asegurar limpieza
-            if (this.authManager) {
-                setTimeout(() => {
+            setTimeout(() => {
+                if (this.isAuthenticated && this.authManager) {
+                    // Modo autenticado - usar token
                     const token = this.authManager.getAccessToken();
                     this.elements.streamImg.src = `/streams/${stream.id}/feed?token=${token}&t=${Date.now()}`;
-                }, 50);
-            }
+                } else {
+                    // Modo público - sin token
+                    this.elements.streamImg.src = `/streams/public/${stream.id}/feed?t=${Date.now()}`;
+                }
+            }, 50);
         }
 
         // Log del cambio
@@ -103,15 +121,54 @@ export class SurveillanceNode {
     init() {
         this.initStream();
         this.setupStreamListeners();
-        this.initWebSocket();
+
+        // Solo inicializar WebSocket si está autenticado
+        if (this.isAuthenticated) {
+            this.initWebSocket();
+        }
+
         this.startClock();
         this.startUptimeCounter();
         this.mediaController = new MediaController(this);
         this.addLog('System initialized', 'info');
         this.addLog('Connecting to feed...', 'info');
+
+        // En modo público, iniciar polling para status
+        if (!this.isAuthenticated) {
+            this.startPublicStatusPolling();
+        }
+    }
+
+    startPublicStatusPolling() {
+        // Polling cada 5 segundos para actualizar status en modo público
+        setInterval(() => {
+            const streamId = this.getCurrentStreamId();
+            if (streamId) {
+                this.fetchPublicStatus(streamId);
+            }
+        }, 5000);
+    }
+
+    async fetchPublicStatus(streamId) {
+        try {
+            const response = await fetch(`/streams/public/${streamId}/status`);
+            if (response.ok) {
+                const data = await response.json();
+                if (data.success) {
+                    this.updateStatus({
+                        connected: data.data.connected,
+                        clients: data.data.clients,
+                        streamId: streamId
+                    });
+                }
+            }
+        } catch (error) {
+            // Silenciar errores de polling
+        }
     }
 
     initWebSocket() {
+        if (!this.socketManager) return;
         this.socketManager.connect();
 
         this.socketManager.on('connected', () => {
@@ -187,10 +244,16 @@ export class SurveillanceNode {
 
         setTimeout(() => {
             const streamId = this.getCurrentStreamId();
-            if (this.elements.streamImg && this.authManager && streamId) {
-                const token = this.authManager.getAccessToken();
+            if (this.elements.streamImg && streamId) {
                 this.showOverlay('RECONNECTING...');
-                this.elements.streamImg.src = `/streams/${streamId}/feed?token=${token}&t=${Date.now()}`;
+
+                if (this.isAuthenticated && this.authManager) {
+                    const token = this.authManager.getAccessToken();
+                    this.elements.streamImg.src = `/streams/${streamId}/feed?token=${token}&t=${Date.now()}`;
+                } else {
+                    this.elements.streamImg.src = `/streams/public/${streamId}/feed?t=${Date.now()}`;
+                }
+
                 this.addLog('Attempting reconnection...', 'info');
             }
         }, 5000);
